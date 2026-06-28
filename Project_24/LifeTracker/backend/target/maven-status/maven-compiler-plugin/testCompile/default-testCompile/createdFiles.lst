@@ -1,0 +1,5 @@
+com/lifetracker/shared/infrastructure/OpenFoodFactsClientTest.class
+com/lifetracker/modules/expenses/api/ExpenseControllerTest.class
+com/lifetracker/modules/expenses/service/ExpenseServiceImplTest.class
+com/lifetracker/modules/habitlogs/service/HabitLogServiceImplTest.class
+com/lifetracker/shared/application/exception/ApiExceptionHandlerTest.class

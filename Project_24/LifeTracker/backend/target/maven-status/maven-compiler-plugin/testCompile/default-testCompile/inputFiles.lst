@@ -1,0 +1,5 @@
+/home/ramesh/Desktop/Project_24/LifeTracker/backend/src/test/java/com/lifetracker/modules/expenses/api/ExpenseControllerTest.java
+/home/ramesh/Desktop/Project_24/LifeTracker/backend/src/test/java/com/lifetracker/modules/expenses/service/ExpenseServiceImplTest.java
+/home/ramesh/Desktop/Project_24/LifeTracker/backend/src/test/java/com/lifetracker/modules/habitlogs/service/HabitLogServiceImplTest.java
+/home/ramesh/Desktop/Project_24/LifeTracker/backend/src/test/java/com/lifetracker/shared/application/exception/ApiExceptionHandlerTest.java
+/home/ramesh/Desktop/Project_24/LifeTracker/backend/src/test/java/com/lifetracker/shared/infrastructure/OpenFoodFactsClientTest.java

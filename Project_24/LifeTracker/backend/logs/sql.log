@@ -1,0 +1,1482 @@
+2026-06-28 15:31:01.742 DEBUG [http-nio-8080-exec-5] org.hibernate.SQL - 
+    select
+        au1_0.id,
+        au1_0.is_active,
+        au1_0.created_at,
+        au1_0.display_name,
+        au1_0.email,
+        au1_0.first_name,
+        au1_0.house_key,
+        au1_0.password_hash,
+        au1_0.updated_at,
+        au1_0.uuid 
+    from
+        app_user au1_0 
+    where
+        upper(au1_0.email)=upper(?)
+2026-06-28 15:31:01.752 TRACE [http-nio-8080-exec-5] org.hibernate.orm.jdbc.bind - binding parameter (1:VARCHAR) <- [rameshmatlapudi20022405@gmail.com]
+2026-06-28 15:31:04.661 DEBUG [http-nio-8080-exec-1] org.hibernate.SQL - 
+    select
+        e1_0.id,
+        e1_0.amount,
+        e1_0.category,
+        e1_0.created_at,
+        e1_0.description,
+        e1_0.expense_date,
+        e1_0.expense_type,
+        e1_0.notes,
+        e1_0.payment_mode,
+        e1_0.title,
+        e1_0.updated_at,
+        e1_0.user_id,
+        e1_0.uuid 
+    from
+        expenses e1_0 
+    where
+        e1_0.user_id=?
+2026-06-28 15:31:04.661 DEBUG [http-nio-8080-exec-9] org.hibernate.SQL - 
+    select
+        e1_0.id,
+        e1_0.amount,
+        e1_0.category,
+        e1_0.created_at,
+        e1_0.description,
+        e1_0.expense_date,
+        e1_0.expense_type,
+        e1_0.notes,
+        e1_0.payment_mode,
+        e1_0.title,
+        e1_0.updated_at,
+        e1_0.user_id,
+        e1_0.uuid 
+    from
+        expenses e1_0 
+    where
+        e1_0.user_id=?
+2026-06-28 15:31:04.661 DEBUG [http-nio-8080-exec-2] org.hibernate.SQL - 
+    select
+        e1_0.id,
+        e1_0.amount,
+        e1_0.category,
+        e1_0.created_at,
+        e1_0.description,
+        e1_0.expense_date,
+        e1_0.expense_type,
+        e1_0.notes,
+        e1_0.payment_mode,
+        e1_0.title,
+        e1_0.updated_at,
+        e1_0.user_id,
+        e1_0.uuid 
+    from
+        expenses e1_0 
+    where
+        e1_0.user_id=?
+2026-06-28 15:31:04.661 DEBUG [http-nio-8080-exec-7] org.hibernate.SQL - 
+    select
+        e1_0.id,
+        e1_0.amount,
+        e1_0.category,
+        e1_0.created_at,
+        e1_0.description,
+        e1_0.expense_date,
+        e1_0.expense_type,
+        e1_0.notes,
+        e1_0.payment_mode,
+        e1_0.title,
+        e1_0.updated_at,
+        e1_0.user_id,
+        e1_0.uuid 
+    from
+        expenses e1_0 
+    where
+        e1_0.user_id=?
+2026-06-28 15:31:04.662 TRACE [http-nio-8080-exec-1] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:04.663 TRACE [http-nio-8080-exec-9] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:04.663 TRACE [http-nio-8080-exec-7] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:04.661 DEBUG [http-nio-8080-exec-6] org.hibernate.SQL - 
+    select
+        hc1_0.id,
+        hc1_0.is_active,
+        hc1_0.code,
+        hc1_0.created_at,
+        hc1_0.description,
+        hc1_0.display_order,
+        hc1_0.name,
+        hc1_0.updated_at,
+        hc1_0.uuid 
+    from
+        habit_categories hc1_0 
+    where
+        hc1_0.is_active 
+    order by
+        hc1_0.display_order,
+        hc1_0.name
+2026-06-28 15:31:04.662 DEBUG [http-nio-8080-exec-8] org.hibernate.SQL - 
+    select
+        h1_0.id,
+        h1_0.is_active,
+        h1_0.color_hex,
+        h1_0.created_at,
+        h1_0.description,
+        h1_0.display_order,
+        h1_0.end_date,
+        h1_0.frequency,
+        h1_0.habit_category_id,
+        h1_0.icon_name,
+        h1_0.name,
+        h1_0.notifications_enabled,
+        h1_0.reminder_time,
+        h1_0.start_date,
+        h1_0.updated_at,
+        h1_0.user_id,
+        h1_0.uuid 
+    from
+        habits h1_0 
+    where
+        h1_0.user_id=?
+2026-06-28 15:31:04.663 TRACE [http-nio-8080-exec-2] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:04.664 TRACE [http-nio-8080-exec-8] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:04.679 DEBUG [http-nio-8080-exec-3] org.hibernate.SQL - 
+    select
+        ng1_0.id,
+        ng1_0.calorie_goal,
+        ng1_0.carbs_goal,
+        ng1_0.created_at,
+        ng1_0.fat_goal,
+        ng1_0.fiber_goal,
+        ng1_0.owner_user_id,
+        ng1_0.protein_goal,
+        ng1_0.updated_at,
+        ng1_0.uuid 
+    from
+        nutrition_goals ng1_0 
+    where
+        ng1_0.owner_user_id=?
+2026-06-28 15:31:04.679 DEBUG [http-nio-8080-exec-4] org.hibernate.SQL - 
+    select
+        ng1_0.id,
+        ng1_0.calorie_goal,
+        ng1_0.carbs_goal,
+        ng1_0.created_at,
+        ng1_0.fat_goal,
+        ng1_0.fiber_goal,
+        ng1_0.owner_user_id,
+        ng1_0.protein_goal,
+        ng1_0.updated_at,
+        ng1_0.uuid 
+    from
+        nutrition_goals ng1_0 
+    where
+        ng1_0.owner_user_id=?
+2026-06-28 15:31:04.681 TRACE [http-nio-8080-exec-3] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:04.682 TRACE [http-nio-8080-exec-4] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:04.699 DEBUG [http-nio-8080-exec-4] org.hibernate.SQL - 
+    select
+        ml1_0.id,
+        ml1_0.created_at,
+        ml1_0.meal_date,
+        ml1_0.meal_type,
+        ml1_0.notes,
+        ml1_0.owner_user_id,
+        ml1_0.updated_at,
+        ml1_0.uuid 
+    from
+        meal_logs ml1_0 
+    where
+        ml1_0.owner_user_id=? 
+        and ml1_0.meal_date=? 
+    order by
+        ml1_0.meal_type,
+        ml1_0.created_at
+2026-06-28 15:31:04.699 DEBUG [http-nio-8080-exec-10] org.hibernate.SQL - 
+    select
+        fi1_0.id,
+        fi1_0.is_active,
+        fi1_0.barcode,
+        fi1_0.brand,
+        fi1_0.calories,
+        fi1_0.carbs,
+        fi1_0.category,
+        fi1_0.created_at,
+        fi1_0.display_order,
+        fi1_0.fat,
+        fi1_0.fiber,
+        fi1_0.image_url,
+        fi1_0.name,
+        fi1_0.owner_user_id,
+        fi1_0.protein,
+        fi1_0.reference_quantity,
+        fi1_0.reference_weight,
+        fi1_0.serving_unit,
+        fi1_0.source,
+        fi1_0.is_system,
+        fi1_0.updated_at,
+        fi1_0.uuid 
+    from
+        food_items fi1_0 
+    where
+        fi1_0.is_active=true 
+        and (
+            fi1_0.is_system=true 
+            or fi1_0.owner_user_id=?
+        ) 
+    order by
+        fi1_0.name
+2026-06-28 15:31:04.699 DEBUG [http-nio-8080-exec-3] org.hibernate.SQL - 
+    select
+        ml1_0.id,
+        ml1_0.created_at,
+        ml1_0.meal_date,
+        ml1_0.meal_type,
+        ml1_0.notes,
+        ml1_0.owner_user_id,
+        ml1_0.updated_at,
+        ml1_0.uuid 
+    from
+        meal_logs ml1_0 
+    where
+        ml1_0.owner_user_id=? 
+        and ml1_0.meal_date=? 
+    order by
+        ml1_0.meal_type,
+        ml1_0.created_at
+2026-06-28 15:31:04.700 TRACE [http-nio-8080-exec-4] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:04.700 TRACE [http-nio-8080-exec-4] org.hibernate.orm.jdbc.bind - binding parameter (2:DATE) <- [2026-06-28]
+2026-06-28 15:31:04.700 TRACE [http-nio-8080-exec-3] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:04.700 TRACE [http-nio-8080-exec-10] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:04.701 TRACE [http-nio-8080-exec-3] org.hibernate.orm.jdbc.bind - binding parameter (2:DATE) <- [2026-06-28]
+2026-06-28 15:31:05.556 DEBUG [http-nio-8080-exec-5] org.hibernate.SQL - 
+    select
+        ls1_0.id,
+        ls1_0.color_hex,
+        ls1_0.completed_date,
+        ls1_0.completed_minutes,
+        ls1_0.created_at,
+        ls1_0.description,
+        ls1_0.display_order,
+        ls1_0.icon_name,
+        ls1_0.notifications_enabled,
+        ls1_0.planned_minutes,
+        ls1_0.priority,
+        ls1_0.reminder_time,
+        ls1_0.resource_type,
+        ls1_0.resource_url,
+        ls1_0.scheduled_date,
+        ls1_0.status,
+        ls1_0.title,
+        ls1_0.topic,
+        ls1_0.updated_at,
+        ls1_0.user_id,
+        ls1_0.uuid 
+    from
+        learning_sessions ls1_0 
+    where
+        ls1_0.user_id=?
+2026-06-28 15:31:05.557 TRACE [http-nio-8080-exec-5] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:05.624 DEBUG [http-nio-8080-exec-7] org.hibernate.SQL - 
+    select
+        h1_0.id,
+        h1_0.is_active,
+        h1_0.color_hex,
+        h1_0.created_at,
+        h1_0.description,
+        h1_0.display_order,
+        h1_0.end_date,
+        h1_0.frequency,
+        h1_0.habit_category_id,
+        h1_0.icon_name,
+        h1_0.name,
+        h1_0.notifications_enabled,
+        h1_0.reminder_time,
+        h1_0.start_date,
+        h1_0.updated_at,
+        h1_0.user_id,
+        h1_0.uuid 
+    from
+        habits h1_0 
+    where
+        h1_0.user_id=? 
+        and h1_0.is_active
+2026-06-28 15:31:05.624 TRACE [http-nio-8080-exec-7] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:05.643 DEBUG [http-nio-8080-exec-7] org.hibernate.SQL - 
+    select
+        hl1_0.id,
+        hl1_0.is_active,
+        hl1_0.completion_status,
+        hl1_0.created_at,
+        hl1_0.habit_id,
+        hl1_0.logged_at,
+        hl1_0.notes,
+        hl1_0.updated_at,
+        hl1_0.uuid,
+        hl1_0.value 
+    from
+        habit_logs hl1_0 
+    where
+        hl1_0.habit_id in (?) 
+        and hl1_0.logged_at between ? and ? 
+    order by
+        hl1_0.logged_at desc,
+        hl1_0.id desc
+2026-06-28 15:31:05.644 TRACE [http-nio-8080-exec-7] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [13]
+2026-06-28 15:31:05.644 TRACE [http-nio-8080-exec-7] org.hibernate.orm.jdbc.bind - binding parameter (2:TIMESTAMP) <- [2026-06-28T00:00]
+2026-06-28 15:31:05.646 TRACE [http-nio-8080-exec-7] org.hibernate.orm.jdbc.bind - binding parameter (3:TIMESTAMP) <- [2026-06-29T00:00]
+2026-06-28 15:31:05.658 DEBUG [http-nio-8080-exec-7] org.hibernate.SQL - 
+    select
+        hl1_0.id,
+        hl1_0.is_active,
+        hl1_0.completion_status,
+        hl1_0.created_at,
+        hl1_0.habit_id,
+        hl1_0.logged_at,
+        hl1_0.notes,
+        hl1_0.updated_at,
+        hl1_0.uuid,
+        hl1_0.value 
+    from
+        habit_logs hl1_0 
+    where
+        hl1_0.habit_id in (?) 
+        and hl1_0.logged_at<? 
+    order by
+        hl1_0.logged_at desc,
+        hl1_0.id desc
+2026-06-28 15:31:05.659 TRACE [http-nio-8080-exec-7] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [13]
+2026-06-28 15:31:05.659 TRACE [http-nio-8080-exec-7] org.hibernate.orm.jdbc.bind - binding parameter (2:TIMESTAMP) <- [2026-06-29T00:00]
+2026-06-28 15:31:05.691 DEBUG [http-nio-8080-exec-7] org.hibernate.SQL - 
+    select
+        au1_0.id,
+        au1_0.is_active,
+        au1_0.created_at,
+        au1_0.display_name,
+        au1_0.email,
+        au1_0.first_name,
+        au1_0.house_key,
+        au1_0.password_hash,
+        au1_0.updated_at,
+        au1_0.uuid 
+    from
+        app_user au1_0 
+    where
+        au1_0.id=?
+2026-06-28 15:31:05.692 TRACE [http-nio-8080-exec-7] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:17.871 DEBUG [http-nio-8080-exec-1] org.hibernate.SQL - 
+    select
+        hc1_0.id,
+        hc1_0.is_active,
+        hc1_0.code,
+        hc1_0.created_at,
+        hc1_0.description,
+        hc1_0.display_order,
+        hc1_0.name,
+        hc1_0.updated_at,
+        hc1_0.uuid 
+    from
+        habit_categories hc1_0 
+    where
+        hc1_0.is_active 
+    order by
+        hc1_0.display_order,
+        hc1_0.name
+2026-06-28 15:31:17.873 DEBUG [http-nio-8080-exec-7] org.hibernate.SQL - 
+    select
+        h1_0.id,
+        h1_0.is_active,
+        h1_0.color_hex,
+        h1_0.created_at,
+        h1_0.description,
+        h1_0.display_order,
+        h1_0.end_date,
+        h1_0.frequency,
+        h1_0.habit_category_id,
+        h1_0.icon_name,
+        h1_0.name,
+        h1_0.notifications_enabled,
+        h1_0.reminder_time,
+        h1_0.start_date,
+        h1_0.updated_at,
+        h1_0.user_id,
+        h1_0.uuid 
+    from
+        habits h1_0 
+    where
+        h1_0.user_id=?
+2026-06-28 15:31:17.875 TRACE [http-nio-8080-exec-7] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:18.144 DEBUG [http-nio-8080-exec-8] org.hibernate.SQL - 
+    select
+        ls1_0.id,
+        ls1_0.color_hex,
+        ls1_0.completed_date,
+        ls1_0.completed_minutes,
+        ls1_0.created_at,
+        ls1_0.description,
+        ls1_0.display_order,
+        ls1_0.icon_name,
+        ls1_0.notifications_enabled,
+        ls1_0.planned_minutes,
+        ls1_0.priority,
+        ls1_0.reminder_time,
+        ls1_0.resource_type,
+        ls1_0.resource_url,
+        ls1_0.scheduled_date,
+        ls1_0.status,
+        ls1_0.title,
+        ls1_0.topic,
+        ls1_0.updated_at,
+        ls1_0.user_id,
+        ls1_0.uuid 
+    from
+        learning_sessions ls1_0 
+    where
+        ls1_0.user_id=?
+2026-06-28 15:31:18.145 TRACE [http-nio-8080-exec-8] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:18.273 DEBUG [http-nio-8080-exec-6] org.hibernate.SQL - 
+    select
+        h1_0.id,
+        h1_0.is_active,
+        h1_0.color_hex,
+        h1_0.created_at,
+        h1_0.description,
+        h1_0.display_order,
+        h1_0.end_date,
+        h1_0.frequency,
+        h1_0.habit_category_id,
+        h1_0.icon_name,
+        h1_0.name,
+        h1_0.notifications_enabled,
+        h1_0.reminder_time,
+        h1_0.start_date,
+        h1_0.updated_at,
+        h1_0.user_id,
+        h1_0.uuid 
+    from
+        habits h1_0 
+    where
+        h1_0.user_id=? 
+        and h1_0.is_active
+2026-06-28 15:31:18.274 TRACE [http-nio-8080-exec-6] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:18.284 DEBUG [http-nio-8080-exec-6] org.hibernate.SQL - 
+    select
+        hl1_0.id,
+        hl1_0.is_active,
+        hl1_0.completion_status,
+        hl1_0.created_at,
+        hl1_0.habit_id,
+        hl1_0.logged_at,
+        hl1_0.notes,
+        hl1_0.updated_at,
+        hl1_0.uuid,
+        hl1_0.value 
+    from
+        habit_logs hl1_0 
+    where
+        hl1_0.habit_id in (?) 
+        and hl1_0.logged_at between ? and ? 
+    order by
+        hl1_0.logged_at desc,
+        hl1_0.id desc
+2026-06-28 15:31:18.285 TRACE [http-nio-8080-exec-6] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [13]
+2026-06-28 15:31:18.285 TRACE [http-nio-8080-exec-6] org.hibernate.orm.jdbc.bind - binding parameter (2:TIMESTAMP) <- [2026-06-28T00:00]
+2026-06-28 15:31:18.285 TRACE [http-nio-8080-exec-6] org.hibernate.orm.jdbc.bind - binding parameter (3:TIMESTAMP) <- [2026-06-29T00:00]
+2026-06-28 15:31:18.294 DEBUG [http-nio-8080-exec-6] org.hibernate.SQL - 
+    select
+        hl1_0.id,
+        hl1_0.is_active,
+        hl1_0.completion_status,
+        hl1_0.created_at,
+        hl1_0.habit_id,
+        hl1_0.logged_at,
+        hl1_0.notes,
+        hl1_0.updated_at,
+        hl1_0.uuid,
+        hl1_0.value 
+    from
+        habit_logs hl1_0 
+    where
+        hl1_0.habit_id in (?) 
+        and hl1_0.logged_at<? 
+    order by
+        hl1_0.logged_at desc,
+        hl1_0.id desc
+2026-06-28 15:31:18.295 TRACE [http-nio-8080-exec-6] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [13]
+2026-06-28 15:31:18.295 TRACE [http-nio-8080-exec-6] org.hibernate.orm.jdbc.bind - binding parameter (2:TIMESTAMP) <- [2026-06-29T00:00]
+2026-06-28 15:31:18.299 DEBUG [http-nio-8080-exec-6] org.hibernate.SQL - 
+    select
+        au1_0.id,
+        au1_0.is_active,
+        au1_0.created_at,
+        au1_0.display_name,
+        au1_0.email,
+        au1_0.first_name,
+        au1_0.house_key,
+        au1_0.password_hash,
+        au1_0.updated_at,
+        au1_0.uuid 
+    from
+        app_user au1_0 
+    where
+        au1_0.id=?
+2026-06-28 15:31:18.300 TRACE [http-nio-8080-exec-6] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:18.854 DEBUG [http-nio-8080-exec-9] org.hibernate.SQL - 
+    select
+        h1_0.id,
+        h1_0.is_active,
+        h1_0.color_hex,
+        h1_0.created_at,
+        h1_0.description,
+        h1_0.display_order,
+        h1_0.end_date,
+        h1_0.frequency,
+        h1_0.habit_category_id,
+        h1_0.icon_name,
+        h1_0.name,
+        h1_0.notifications_enabled,
+        h1_0.reminder_time,
+        h1_0.start_date,
+        h1_0.updated_at,
+        h1_0.user_id,
+        h1_0.uuid 
+    from
+        habits h1_0 
+    where
+        h1_0.user_id=?
+2026-06-28 15:31:18.855 TRACE [http-nio-8080-exec-9] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:18.901 DEBUG [http-nio-8080-exec-3] org.hibernate.SQL - 
+    select
+        ls1_0.id,
+        ls1_0.color_hex,
+        ls1_0.completed_date,
+        ls1_0.completed_minutes,
+        ls1_0.created_at,
+        ls1_0.description,
+        ls1_0.display_order,
+        ls1_0.icon_name,
+        ls1_0.notifications_enabled,
+        ls1_0.planned_minutes,
+        ls1_0.priority,
+        ls1_0.reminder_time,
+        ls1_0.resource_type,
+        ls1_0.resource_url,
+        ls1_0.scheduled_date,
+        ls1_0.status,
+        ls1_0.title,
+        ls1_0.topic,
+        ls1_0.updated_at,
+        ls1_0.user_id,
+        ls1_0.uuid 
+    from
+        learning_sessions ls1_0 
+    where
+        ls1_0.user_id=?
+2026-06-28 15:31:18.903 TRACE [http-nio-8080-exec-3] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:18.940 DEBUG [http-nio-8080-exec-2] org.hibernate.SQL - 
+    select
+        h1_0.id,
+        h1_0.is_active,
+        h1_0.color_hex,
+        h1_0.created_at,
+        h1_0.description,
+        h1_0.display_order,
+        h1_0.end_date,
+        h1_0.frequency,
+        h1_0.habit_category_id,
+        h1_0.icon_name,
+        h1_0.name,
+        h1_0.notifications_enabled,
+        h1_0.reminder_time,
+        h1_0.start_date,
+        h1_0.updated_at,
+        h1_0.user_id,
+        h1_0.uuid 
+    from
+        habits h1_0 
+    where
+        h1_0.user_id=? 
+        and h1_0.is_active
+2026-06-28 15:31:18.941 TRACE [http-nio-8080-exec-2] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:18.947 DEBUG [http-nio-8080-exec-2] org.hibernate.SQL - 
+    select
+        hl1_0.id,
+        hl1_0.is_active,
+        hl1_0.completion_status,
+        hl1_0.created_at,
+        hl1_0.habit_id,
+        hl1_0.logged_at,
+        hl1_0.notes,
+        hl1_0.updated_at,
+        hl1_0.uuid,
+        hl1_0.value 
+    from
+        habit_logs hl1_0 
+    where
+        hl1_0.habit_id in (?) 
+        and hl1_0.logged_at between ? and ? 
+    order by
+        hl1_0.logged_at desc,
+        hl1_0.id desc
+2026-06-28 15:31:18.947 TRACE [http-nio-8080-exec-2] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [13]
+2026-06-28 15:31:18.948 TRACE [http-nio-8080-exec-2] org.hibernate.orm.jdbc.bind - binding parameter (2:TIMESTAMP) <- [2026-06-28T00:00]
+2026-06-28 15:31:18.948 TRACE [http-nio-8080-exec-2] org.hibernate.orm.jdbc.bind - binding parameter (3:TIMESTAMP) <- [2026-06-29T00:00]
+2026-06-28 15:31:18.953 DEBUG [http-nio-8080-exec-2] org.hibernate.SQL - 
+    select
+        hl1_0.id,
+        hl1_0.is_active,
+        hl1_0.completion_status,
+        hl1_0.created_at,
+        hl1_0.habit_id,
+        hl1_0.logged_at,
+        hl1_0.notes,
+        hl1_0.updated_at,
+        hl1_0.uuid,
+        hl1_0.value 
+    from
+        habit_logs hl1_0 
+    where
+        hl1_0.habit_id in (?) 
+        and hl1_0.logged_at<? 
+    order by
+        hl1_0.logged_at desc,
+        hl1_0.id desc
+2026-06-28 15:31:18.954 TRACE [http-nio-8080-exec-2] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [13]
+2026-06-28 15:31:18.954 TRACE [http-nio-8080-exec-2] org.hibernate.orm.jdbc.bind - binding parameter (2:TIMESTAMP) <- [2026-06-29T00:00]
+2026-06-28 15:31:18.959 DEBUG [http-nio-8080-exec-2] org.hibernate.SQL - 
+    select
+        au1_0.id,
+        au1_0.is_active,
+        au1_0.created_at,
+        au1_0.display_name,
+        au1_0.email,
+        au1_0.first_name,
+        au1_0.house_key,
+        au1_0.password_hash,
+        au1_0.updated_at,
+        au1_0.uuid 
+    from
+        app_user au1_0 
+    where
+        au1_0.id=?
+2026-06-28 15:31:18.960 TRACE [http-nio-8080-exec-2] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:20.083 DEBUG [http-nio-8080-exec-4] org.hibernate.SQL - 
+    select
+        e1_0.id,
+        e1_0.amount,
+        e1_0.category,
+        e1_0.created_at,
+        e1_0.description,
+        e1_0.expense_date,
+        e1_0.expense_type,
+        e1_0.notes,
+        e1_0.payment_mode,
+        e1_0.title,
+        e1_0.updated_at,
+        e1_0.user_id,
+        e1_0.uuid 
+    from
+        expenses e1_0 
+    where
+        e1_0.user_id=?
+2026-06-28 15:31:20.083 DEBUG [http-nio-8080-exec-10] org.hibernate.SQL - 
+    select
+        e1_0.id,
+        e1_0.amount,
+        e1_0.category,
+        e1_0.created_at,
+        e1_0.description,
+        e1_0.expense_date,
+        e1_0.expense_type,
+        e1_0.notes,
+        e1_0.payment_mode,
+        e1_0.title,
+        e1_0.updated_at,
+        e1_0.user_id,
+        e1_0.uuid 
+    from
+        expenses e1_0 
+    where
+        e1_0.user_id=?
+2026-06-28 15:31:20.083 TRACE [http-nio-8080-exec-4] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:20.084 TRACE [http-nio-8080-exec-10] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:20.906 DEBUG [http-nio-8080-exec-5] org.hibernate.SQL - 
+    select
+        ng1_0.id,
+        ng1_0.calorie_goal,
+        ng1_0.carbs_goal,
+        ng1_0.created_at,
+        ng1_0.fat_goal,
+        ng1_0.fiber_goal,
+        ng1_0.owner_user_id,
+        ng1_0.protein_goal,
+        ng1_0.updated_at,
+        ng1_0.uuid 
+    from
+        nutrition_goals ng1_0 
+    where
+        ng1_0.owner_user_id=?
+2026-06-28 15:31:20.907 TRACE [http-nio-8080-exec-5] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:20.909 DEBUG [http-nio-8080-exec-1] org.hibernate.SQL - 
+    select
+        fi1_0.id,
+        fi1_0.is_active,
+        fi1_0.barcode,
+        fi1_0.brand,
+        fi1_0.calories,
+        fi1_0.carbs,
+        fi1_0.category,
+        fi1_0.created_at,
+        fi1_0.display_order,
+        fi1_0.fat,
+        fi1_0.fiber,
+        fi1_0.image_url,
+        fi1_0.name,
+        fi1_0.owner_user_id,
+        fi1_0.protein,
+        fi1_0.reference_quantity,
+        fi1_0.reference_weight,
+        fi1_0.serving_unit,
+        fi1_0.source,
+        fi1_0.is_system,
+        fi1_0.updated_at,
+        fi1_0.uuid 
+    from
+        food_items fi1_0 
+    where
+        fi1_0.is_active=true 
+        and (
+            fi1_0.is_system=true 
+            or fi1_0.owner_user_id=?
+        ) 
+    order by
+        fi1_0.name
+2026-06-28 15:31:20.909 TRACE [http-nio-8080-exec-1] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:20.916 DEBUG [http-nio-8080-exec-5] org.hibernate.SQL - 
+    select
+        ml1_0.id,
+        ml1_0.created_at,
+        ml1_0.meal_date,
+        ml1_0.meal_type,
+        ml1_0.notes,
+        ml1_0.owner_user_id,
+        ml1_0.updated_at,
+        ml1_0.uuid 
+    from
+        meal_logs ml1_0 
+    where
+        ml1_0.owner_user_id=? 
+        and ml1_0.meal_date=? 
+    order by
+        ml1_0.meal_type,
+        ml1_0.created_at
+2026-06-28 15:31:20.918 TRACE [http-nio-8080-exec-5] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:20.918 TRACE [http-nio-8080-exec-5] org.hibernate.orm.jdbc.bind - binding parameter (2:DATE) <- [2026-06-28]
+2026-06-28 15:31:35.813 DEBUG [http-nio-8080-exec-6] org.hibernate.SQL - 
+    select
+        fi1_0.id,
+        fi1_0.is_active,
+        fi1_0.barcode,
+        fi1_0.brand,
+        fi1_0.calories,
+        fi1_0.carbs,
+        fi1_0.category,
+        fi1_0.created_at,
+        fi1_0.display_order,
+        fi1_0.fat,
+        fi1_0.fiber,
+        fi1_0.image_url,
+        fi1_0.name,
+        fi1_0.owner_user_id,
+        fi1_0.protein,
+        fi1_0.reference_quantity,
+        fi1_0.reference_weight,
+        fi1_0.serving_unit,
+        fi1_0.source,
+        fi1_0.is_system,
+        fi1_0.updated_at,
+        fi1_0.uuid 
+    from
+        food_items fi1_0 
+    where
+        fi1_0.is_active=true 
+        and (
+            fi1_0.is_system=true 
+            or fi1_0.owner_user_id=?
+        ) 
+    order by
+        fi1_0.name
+2026-06-28 15:31:35.816 TRACE [http-nio-8080-exec-6] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:39.567 DEBUG [http-nio-8080-exec-3] org.hibernate.SQL - 
+    select
+        e1_0.id,
+        e1_0.amount,
+        e1_0.category,
+        e1_0.created_at,
+        e1_0.description,
+        e1_0.expense_date,
+        e1_0.expense_type,
+        e1_0.notes,
+        e1_0.payment_mode,
+        e1_0.title,
+        e1_0.updated_at,
+        e1_0.user_id,
+        e1_0.uuid 
+    from
+        expenses e1_0 
+    where
+        e1_0.user_id=?
+2026-06-28 15:31:39.568 TRACE [http-nio-8080-exec-3] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:39.573 DEBUG [http-nio-8080-exec-2] org.hibernate.SQL - 
+    select
+        e1_0.id,
+        e1_0.amount,
+        e1_0.category,
+        e1_0.created_at,
+        e1_0.description,
+        e1_0.expense_date,
+        e1_0.expense_type,
+        e1_0.notes,
+        e1_0.payment_mode,
+        e1_0.title,
+        e1_0.updated_at,
+        e1_0.user_id,
+        e1_0.uuid 
+    from
+        expenses e1_0 
+    where
+        e1_0.user_id=?
+2026-06-28 15:31:39.574 TRACE [http-nio-8080-exec-2] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:40.362 DEBUG [http-nio-8080-exec-4] org.hibernate.SQL - 
+    select
+        h1_0.id,
+        h1_0.is_active,
+        h1_0.color_hex,
+        h1_0.created_at,
+        h1_0.description,
+        h1_0.display_order,
+        h1_0.end_date,
+        h1_0.frequency,
+        h1_0.habit_category_id,
+        h1_0.icon_name,
+        h1_0.name,
+        h1_0.notifications_enabled,
+        h1_0.reminder_time,
+        h1_0.start_date,
+        h1_0.updated_at,
+        h1_0.user_id,
+        h1_0.uuid 
+    from
+        habits h1_0 
+    where
+        h1_0.user_id=?
+2026-06-28 15:31:40.363 TRACE [http-nio-8080-exec-4] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:40.571 DEBUG [http-nio-8080-exec-10] org.hibernate.SQL - 
+    select
+        ls1_0.id,
+        ls1_0.color_hex,
+        ls1_0.completed_date,
+        ls1_0.completed_minutes,
+        ls1_0.created_at,
+        ls1_0.description,
+        ls1_0.display_order,
+        ls1_0.icon_name,
+        ls1_0.notifications_enabled,
+        ls1_0.planned_minutes,
+        ls1_0.priority,
+        ls1_0.reminder_time,
+        ls1_0.resource_type,
+        ls1_0.resource_url,
+        ls1_0.scheduled_date,
+        ls1_0.status,
+        ls1_0.title,
+        ls1_0.topic,
+        ls1_0.updated_at,
+        ls1_0.user_id,
+        ls1_0.uuid 
+    from
+        learning_sessions ls1_0 
+    where
+        ls1_0.user_id=?
+2026-06-28 15:31:40.572 TRACE [http-nio-8080-exec-10] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:40.612 DEBUG [http-nio-8080-exec-5] org.hibernate.SQL - 
+    select
+        h1_0.id,
+        h1_0.is_active,
+        h1_0.color_hex,
+        h1_0.created_at,
+        h1_0.description,
+        h1_0.display_order,
+        h1_0.end_date,
+        h1_0.frequency,
+        h1_0.habit_category_id,
+        h1_0.icon_name,
+        h1_0.name,
+        h1_0.notifications_enabled,
+        h1_0.reminder_time,
+        h1_0.start_date,
+        h1_0.updated_at,
+        h1_0.user_id,
+        h1_0.uuid 
+    from
+        habits h1_0 
+    where
+        h1_0.user_id=? 
+        and h1_0.is_active
+2026-06-28 15:31:40.613 TRACE [http-nio-8080-exec-5] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:40.621 DEBUG [http-nio-8080-exec-5] org.hibernate.SQL - 
+    select
+        hl1_0.id,
+        hl1_0.is_active,
+        hl1_0.completion_status,
+        hl1_0.created_at,
+        hl1_0.habit_id,
+        hl1_0.logged_at,
+        hl1_0.notes,
+        hl1_0.updated_at,
+        hl1_0.uuid,
+        hl1_0.value 
+    from
+        habit_logs hl1_0 
+    where
+        hl1_0.habit_id in (?) 
+        and hl1_0.logged_at between ? and ? 
+    order by
+        hl1_0.logged_at desc,
+        hl1_0.id desc
+2026-06-28 15:31:40.622 TRACE [http-nio-8080-exec-5] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [13]
+2026-06-28 15:31:40.623 TRACE [http-nio-8080-exec-5] org.hibernate.orm.jdbc.bind - binding parameter (2:TIMESTAMP) <- [2026-06-28T00:00]
+2026-06-28 15:31:40.623 TRACE [http-nio-8080-exec-5] org.hibernate.orm.jdbc.bind - binding parameter (3:TIMESTAMP) <- [2026-06-29T00:00]
+2026-06-28 15:31:40.631 DEBUG [http-nio-8080-exec-5] org.hibernate.SQL - 
+    select
+        hl1_0.id,
+        hl1_0.is_active,
+        hl1_0.completion_status,
+        hl1_0.created_at,
+        hl1_0.habit_id,
+        hl1_0.logged_at,
+        hl1_0.notes,
+        hl1_0.updated_at,
+        hl1_0.uuid,
+        hl1_0.value 
+    from
+        habit_logs hl1_0 
+    where
+        hl1_0.habit_id in (?) 
+        and hl1_0.logged_at<? 
+    order by
+        hl1_0.logged_at desc,
+        hl1_0.id desc
+2026-06-28 15:31:40.632 TRACE [http-nio-8080-exec-5] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [13]
+2026-06-28 15:31:40.632 TRACE [http-nio-8080-exec-5] org.hibernate.orm.jdbc.bind - binding parameter (2:TIMESTAMP) <- [2026-06-29T00:00]
+2026-06-28 15:31:40.635 DEBUG [http-nio-8080-exec-5] org.hibernate.SQL - 
+    select
+        au1_0.id,
+        au1_0.is_active,
+        au1_0.created_at,
+        au1_0.display_name,
+        au1_0.email,
+        au1_0.first_name,
+        au1_0.house_key,
+        au1_0.password_hash,
+        au1_0.updated_at,
+        au1_0.uuid 
+    from
+        app_user au1_0 
+    where
+        au1_0.id=?
+2026-06-28 15:31:40.636 TRACE [http-nio-8080-exec-5] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:41.487 DEBUG [http-nio-8080-exec-7] org.hibernate.SQL - 
+    select
+        h1_0.id,
+        h1_0.is_active,
+        h1_0.color_hex,
+        h1_0.created_at,
+        h1_0.description,
+        h1_0.display_order,
+        h1_0.end_date,
+        h1_0.frequency,
+        h1_0.habit_category_id,
+        h1_0.icon_name,
+        h1_0.name,
+        h1_0.notifications_enabled,
+        h1_0.reminder_time,
+        h1_0.start_date,
+        h1_0.updated_at,
+        h1_0.user_id,
+        h1_0.uuid 
+    from
+        habits h1_0 
+    where
+        h1_0.user_id=?
+2026-06-28 15:31:41.488 TRACE [http-nio-8080-exec-7] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:41.488 DEBUG [http-nio-8080-exec-1] org.hibernate.SQL - 
+    select
+        hc1_0.id,
+        hc1_0.is_active,
+        hc1_0.code,
+        hc1_0.created_at,
+        hc1_0.description,
+        hc1_0.display_order,
+        hc1_0.name,
+        hc1_0.updated_at,
+        hc1_0.uuid 
+    from
+        habit_categories hc1_0 
+    where
+        hc1_0.is_active 
+    order by
+        hc1_0.display_order,
+        hc1_0.name
+2026-06-28 15:31:41.560 DEBUG [http-nio-8080-exec-8] org.hibernate.SQL - 
+    select
+        ls1_0.id,
+        ls1_0.color_hex,
+        ls1_0.completed_date,
+        ls1_0.completed_minutes,
+        ls1_0.created_at,
+        ls1_0.description,
+        ls1_0.display_order,
+        ls1_0.icon_name,
+        ls1_0.notifications_enabled,
+        ls1_0.planned_minutes,
+        ls1_0.priority,
+        ls1_0.reminder_time,
+        ls1_0.resource_type,
+        ls1_0.resource_url,
+        ls1_0.scheduled_date,
+        ls1_0.status,
+        ls1_0.title,
+        ls1_0.topic,
+        ls1_0.updated_at,
+        ls1_0.user_id,
+        ls1_0.uuid 
+    from
+        learning_sessions ls1_0 
+    where
+        ls1_0.user_id=?
+2026-06-28 15:31:41.561 TRACE [http-nio-8080-exec-8] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:41.671 DEBUG [http-nio-8080-exec-6] org.hibernate.SQL - 
+    select
+        h1_0.id,
+        h1_0.is_active,
+        h1_0.color_hex,
+        h1_0.created_at,
+        h1_0.description,
+        h1_0.display_order,
+        h1_0.end_date,
+        h1_0.frequency,
+        h1_0.habit_category_id,
+        h1_0.icon_name,
+        h1_0.name,
+        h1_0.notifications_enabled,
+        h1_0.reminder_time,
+        h1_0.start_date,
+        h1_0.updated_at,
+        h1_0.user_id,
+        h1_0.uuid 
+    from
+        habits h1_0 
+    where
+        h1_0.user_id=? 
+        and h1_0.is_active
+2026-06-28 15:31:41.672 TRACE [http-nio-8080-exec-6] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:41.680 DEBUG [http-nio-8080-exec-6] org.hibernate.SQL - 
+    select
+        hl1_0.id,
+        hl1_0.is_active,
+        hl1_0.completion_status,
+        hl1_0.created_at,
+        hl1_0.habit_id,
+        hl1_0.logged_at,
+        hl1_0.notes,
+        hl1_0.updated_at,
+        hl1_0.uuid,
+        hl1_0.value 
+    from
+        habit_logs hl1_0 
+    where
+        hl1_0.habit_id in (?) 
+        and hl1_0.logged_at between ? and ? 
+    order by
+        hl1_0.logged_at desc,
+        hl1_0.id desc
+2026-06-28 15:31:41.681 TRACE [http-nio-8080-exec-6] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [13]
+2026-06-28 15:31:41.681 TRACE [http-nio-8080-exec-6] org.hibernate.orm.jdbc.bind - binding parameter (2:TIMESTAMP) <- [2026-06-28T00:00]
+2026-06-28 15:31:41.682 TRACE [http-nio-8080-exec-6] org.hibernate.orm.jdbc.bind - binding parameter (3:TIMESTAMP) <- [2026-06-29T00:00]
+2026-06-28 15:31:41.687 DEBUG [http-nio-8080-exec-6] org.hibernate.SQL - 
+    select
+        hl1_0.id,
+        hl1_0.is_active,
+        hl1_0.completion_status,
+        hl1_0.created_at,
+        hl1_0.habit_id,
+        hl1_0.logged_at,
+        hl1_0.notes,
+        hl1_0.updated_at,
+        hl1_0.uuid,
+        hl1_0.value 
+    from
+        habit_logs hl1_0 
+    where
+        hl1_0.habit_id in (?) 
+        and hl1_0.logged_at<? 
+    order by
+        hl1_0.logged_at desc,
+        hl1_0.id desc
+2026-06-28 15:31:41.687 TRACE [http-nio-8080-exec-6] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [13]
+2026-06-28 15:31:41.687 TRACE [http-nio-8080-exec-6] org.hibernate.orm.jdbc.bind - binding parameter (2:TIMESTAMP) <- [2026-06-29T00:00]
+2026-06-28 15:31:41.691 DEBUG [http-nio-8080-exec-6] org.hibernate.SQL - 
+    select
+        au1_0.id,
+        au1_0.is_active,
+        au1_0.created_at,
+        au1_0.display_name,
+        au1_0.email,
+        au1_0.first_name,
+        au1_0.house_key,
+        au1_0.password_hash,
+        au1_0.updated_at,
+        au1_0.uuid 
+    from
+        app_user au1_0 
+    where
+        au1_0.id=?
+2026-06-28 15:31:41.691 TRACE [http-nio-8080-exec-6] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:42.229 DEBUG [http-nio-8080-exec-3] org.hibernate.SQL - 
+    select
+        h1_0.id,
+        h1_0.is_active,
+        h1_0.color_hex,
+        h1_0.created_at,
+        h1_0.description,
+        h1_0.display_order,
+        h1_0.end_date,
+        h1_0.frequency,
+        h1_0.habit_category_id,
+        h1_0.icon_name,
+        h1_0.name,
+        h1_0.notifications_enabled,
+        h1_0.reminder_time,
+        h1_0.start_date,
+        h1_0.updated_at,
+        h1_0.user_id,
+        h1_0.uuid 
+    from
+        habits h1_0 
+    where
+        h1_0.user_id=?
+2026-06-28 15:31:42.230 TRACE [http-nio-8080-exec-3] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:42.230 DEBUG [http-nio-8080-exec-9] org.hibernate.SQL - 
+    select
+        hc1_0.id,
+        hc1_0.is_active,
+        hc1_0.code,
+        hc1_0.created_at,
+        hc1_0.description,
+        hc1_0.display_order,
+        hc1_0.name,
+        hc1_0.updated_at,
+        hc1_0.uuid 
+    from
+        habit_categories hc1_0 
+    where
+        hc1_0.is_active 
+    order by
+        hc1_0.display_order,
+        hc1_0.name
+2026-06-28 15:31:42.318 DEBUG [http-nio-8080-exec-2] org.hibernate.SQL - 
+    select
+        ls1_0.id,
+        ls1_0.color_hex,
+        ls1_0.completed_date,
+        ls1_0.completed_minutes,
+        ls1_0.created_at,
+        ls1_0.description,
+        ls1_0.display_order,
+        ls1_0.icon_name,
+        ls1_0.notifications_enabled,
+        ls1_0.planned_minutes,
+        ls1_0.priority,
+        ls1_0.reminder_time,
+        ls1_0.resource_type,
+        ls1_0.resource_url,
+        ls1_0.scheduled_date,
+        ls1_0.status,
+        ls1_0.title,
+        ls1_0.topic,
+        ls1_0.updated_at,
+        ls1_0.user_id,
+        ls1_0.uuid 
+    from
+        learning_sessions ls1_0 
+    where
+        ls1_0.user_id=?
+2026-06-28 15:31:42.319 TRACE [http-nio-8080-exec-2] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:42.436 DEBUG [http-nio-8080-exec-4] org.hibernate.SQL - 
+    select
+        h1_0.id,
+        h1_0.is_active,
+        h1_0.color_hex,
+        h1_0.created_at,
+        h1_0.description,
+        h1_0.display_order,
+        h1_0.end_date,
+        h1_0.frequency,
+        h1_0.habit_category_id,
+        h1_0.icon_name,
+        h1_0.name,
+        h1_0.notifications_enabled,
+        h1_0.reminder_time,
+        h1_0.start_date,
+        h1_0.updated_at,
+        h1_0.user_id,
+        h1_0.uuid 
+    from
+        habits h1_0 
+    where
+        h1_0.user_id=? 
+        and h1_0.is_active
+2026-06-28 15:31:42.437 TRACE [http-nio-8080-exec-4] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:31:42.443 DEBUG [http-nio-8080-exec-4] org.hibernate.SQL - 
+    select
+        hl1_0.id,
+        hl1_0.is_active,
+        hl1_0.completion_status,
+        hl1_0.created_at,
+        hl1_0.habit_id,
+        hl1_0.logged_at,
+        hl1_0.notes,
+        hl1_0.updated_at,
+        hl1_0.uuid,
+        hl1_0.value 
+    from
+        habit_logs hl1_0 
+    where
+        hl1_0.habit_id in (?) 
+        and hl1_0.logged_at between ? and ? 
+    order by
+        hl1_0.logged_at desc,
+        hl1_0.id desc
+2026-06-28 15:31:42.444 TRACE [http-nio-8080-exec-4] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [13]
+2026-06-28 15:31:42.445 TRACE [http-nio-8080-exec-4] org.hibernate.orm.jdbc.bind - binding parameter (2:TIMESTAMP) <- [2026-06-28T00:00]
+2026-06-28 15:31:42.445 TRACE [http-nio-8080-exec-4] org.hibernate.orm.jdbc.bind - binding parameter (3:TIMESTAMP) <- [2026-06-29T00:00]
+2026-06-28 15:31:42.454 DEBUG [http-nio-8080-exec-4] org.hibernate.SQL - 
+    select
+        hl1_0.id,
+        hl1_0.is_active,
+        hl1_0.completion_status,
+        hl1_0.created_at,
+        hl1_0.habit_id,
+        hl1_0.logged_at,
+        hl1_0.notes,
+        hl1_0.updated_at,
+        hl1_0.uuid,
+        hl1_0.value 
+    from
+        habit_logs hl1_0 
+    where
+        hl1_0.habit_id in (?) 
+        and hl1_0.logged_at<? 
+    order by
+        hl1_0.logged_at desc,
+        hl1_0.id desc
+2026-06-28 15:31:42.455 TRACE [http-nio-8080-exec-4] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [13]
+2026-06-28 15:31:42.455 TRACE [http-nio-8080-exec-4] org.hibernate.orm.jdbc.bind - binding parameter (2:TIMESTAMP) <- [2026-06-29T00:00]
+2026-06-28 15:31:42.459 DEBUG [http-nio-8080-exec-4] org.hibernate.SQL - 
+    select
+        au1_0.id,
+        au1_0.is_active,
+        au1_0.created_at,
+        au1_0.display_name,
+        au1_0.email,
+        au1_0.first_name,
+        au1_0.house_key,
+        au1_0.password_hash,
+        au1_0.updated_at,
+        au1_0.uuid 
+    from
+        app_user au1_0 
+    where
+        au1_0.id=?
+2026-06-28 15:31:42.460 TRACE [http-nio-8080-exec-4] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:32:22.490 DEBUG [http-nio-8080-exec-7] org.hibernate.SQL - 
+    select
+        fi1_0.id,
+        fi1_0.is_active,
+        fi1_0.barcode,
+        fi1_0.brand,
+        fi1_0.calories,
+        fi1_0.carbs,
+        fi1_0.category,
+        fi1_0.created_at,
+        fi1_0.display_order,
+        fi1_0.fat,
+        fi1_0.fiber,
+        fi1_0.image_url,
+        fi1_0.name,
+        fi1_0.owner_user_id,
+        fi1_0.protein,
+        fi1_0.reference_quantity,
+        fi1_0.reference_weight,
+        fi1_0.serving_unit,
+        fi1_0.source,
+        fi1_0.is_system,
+        fi1_0.updated_at,
+        fi1_0.uuid 
+    from
+        food_items fi1_0 
+    where
+        fi1_0.is_active=true 
+        and (
+            fi1_0.is_system=true 
+            or fi1_0.owner_user_id=?
+        ) 
+    order by
+        fi1_0.name
+2026-06-28 15:32:22.493 TRACE [http-nio-8080-exec-7] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:32:22.493 DEBUG [http-nio-8080-exec-1] org.hibernate.SQL - 
+    select
+        ng1_0.id,
+        ng1_0.calorie_goal,
+        ng1_0.carbs_goal,
+        ng1_0.created_at,
+        ng1_0.fat_goal,
+        ng1_0.fiber_goal,
+        ng1_0.owner_user_id,
+        ng1_0.protein_goal,
+        ng1_0.updated_at,
+        ng1_0.uuid 
+    from
+        nutrition_goals ng1_0 
+    where
+        ng1_0.owner_user_id=?
+2026-06-28 15:32:22.494 TRACE [http-nio-8080-exec-1] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:32:22.505 DEBUG [http-nio-8080-exec-1] org.hibernate.SQL - 
+    select
+        ml1_0.id,
+        ml1_0.created_at,
+        ml1_0.meal_date,
+        ml1_0.meal_type,
+        ml1_0.notes,
+        ml1_0.owner_user_id,
+        ml1_0.updated_at,
+        ml1_0.uuid 
+    from
+        meal_logs ml1_0 
+    where
+        ml1_0.owner_user_id=? 
+        and ml1_0.meal_date=? 
+    order by
+        ml1_0.meal_type,
+        ml1_0.created_at
+2026-06-28 15:32:22.508 TRACE [http-nio-8080-exec-1] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:32:22.509 TRACE [http-nio-8080-exec-1] org.hibernate.orm.jdbc.bind - binding parameter (2:DATE) <- [2026-06-28]
+2026-06-28 15:32:30.377 DEBUG [http-nio-8080-exec-3] org.hibernate.SQL - 
+    select
+        fi1_0.id,
+        fi1_0.is_active,
+        fi1_0.barcode,
+        fi1_0.brand,
+        fi1_0.calories,
+        fi1_0.carbs,
+        fi1_0.category,
+        fi1_0.created_at,
+        fi1_0.display_order,
+        fi1_0.fat,
+        fi1_0.fiber,
+        fi1_0.image_url,
+        fi1_0.name,
+        fi1_0.owner_user_id,
+        fi1_0.protein,
+        fi1_0.reference_quantity,
+        fi1_0.reference_weight,
+        fi1_0.serving_unit,
+        fi1_0.source,
+        fi1_0.is_system,
+        fi1_0.updated_at,
+        fi1_0.uuid 
+    from
+        food_items fi1_0 
+    where
+        fi1_0.is_active=true 
+        and (
+            fi1_0.is_system=true 
+            or fi1_0.owner_user_id=?
+        ) 
+        and lower(fi1_0.name) like lower(('%'||?||'%')) escape '' 
+    order by
+        fi1_0.name
+2026-06-28 15:32:30.378 TRACE [http-nio-8080-exec-3] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:32:30.379 TRACE [http-nio-8080-exec-3] org.hibernate.orm.jdbc.bind - binding parameter (2:VARCHAR) <- [r]
+2026-06-28 15:32:30.443 DEBUG [http-nio-8080-exec-9] org.hibernate.SQL - 
+    select
+        fi1_0.id,
+        fi1_0.is_active,
+        fi1_0.barcode,
+        fi1_0.brand,
+        fi1_0.calories,
+        fi1_0.carbs,
+        fi1_0.category,
+        fi1_0.created_at,
+        fi1_0.display_order,
+        fi1_0.fat,
+        fi1_0.fiber,
+        fi1_0.image_url,
+        fi1_0.name,
+        fi1_0.owner_user_id,
+        fi1_0.protein,
+        fi1_0.reference_quantity,
+        fi1_0.reference_weight,
+        fi1_0.serving_unit,
+        fi1_0.source,
+        fi1_0.is_system,
+        fi1_0.updated_at,
+        fi1_0.uuid 
+    from
+        food_items fi1_0 
+    where
+        fi1_0.is_active=true 
+        and (
+            fi1_0.is_system=true 
+            or fi1_0.owner_user_id=?
+        ) 
+        and lower(fi1_0.name) like lower(('%'||?||'%')) escape '' 
+    order by
+        fi1_0.name
+2026-06-28 15:32:30.444 TRACE [http-nio-8080-exec-9] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:32:30.444 TRACE [http-nio-8080-exec-9] org.hibernate.orm.jdbc.bind - binding parameter (2:VARCHAR) <- [ri]
+2026-06-28 15:32:31.160 DEBUG [http-nio-8080-exec-2] org.hibernate.SQL - 
+    select
+        fi1_0.id,
+        fi1_0.is_active,
+        fi1_0.barcode,
+        fi1_0.brand,
+        fi1_0.calories,
+        fi1_0.carbs,
+        fi1_0.category,
+        fi1_0.created_at,
+        fi1_0.display_order,
+        fi1_0.fat,
+        fi1_0.fiber,
+        fi1_0.image_url,
+        fi1_0.name,
+        fi1_0.owner_user_id,
+        fi1_0.protein,
+        fi1_0.reference_quantity,
+        fi1_0.reference_weight,
+        fi1_0.serving_unit,
+        fi1_0.source,
+        fi1_0.is_system,
+        fi1_0.updated_at,
+        fi1_0.uuid 
+    from
+        food_items fi1_0 
+    where
+        fi1_0.is_active=true 
+        and (
+            fi1_0.is_system=true 
+            or fi1_0.owner_user_id=?
+        ) 
+        and lower(fi1_0.name) like lower(('%'||?||'%')) escape '' 
+    order by
+        fi1_0.name
+2026-06-28 15:32:31.161 TRACE [http-nio-8080-exec-2] org.hibernate.orm.jdbc.bind - binding parameter (1:BIGINT) <- [2]
+2026-06-28 15:32:31.161 TRACE [http-nio-8080-exec-2] org.hibernate.orm.jdbc.bind - binding parameter (2:VARCHAR) <- [rice]
