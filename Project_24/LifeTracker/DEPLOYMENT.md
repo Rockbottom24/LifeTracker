@@ -24,13 +24,16 @@ This repository is prepared for a single Oracle Cloud Ubuntu VM with Docker and 
    - `POSTGRES_PASSWORD`
    - `JWT_SECRET`
    - `CORS_ALLOWED_ORIGINS`
-   - `API_BASE_URL`
+4. Build the Flutter web bundle outside Docker and place it in `frontend/build/web`.
+5. Build command:
+   - `cd frontend && flutter build web --release --dart-define=API_BASE_URL=/api/v1`
 
 ## Start
 
 1. Run `docker compose up -d --build`.
-2. The backend starts with the `prod` profile.
-3. Nginx serves the Flutter web app and proxies `/api/` to the backend.
+2. The backend starts with the `prod` profile and is the only service built on the server.
+3. Nginx copies the prebuilt `frontend/build/web` directory and proxies `/api/` to the backend.
+4. This keeps RAM and disk usage low for `t3.micro`.
 
 ## SSL
 

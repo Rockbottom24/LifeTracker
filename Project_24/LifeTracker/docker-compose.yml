@@ -47,8 +47,6 @@ services:
     build:
       context: .
       dockerfile: deployment/nginx/Dockerfile
-      args:
-        API_BASE_URL: ${API_BASE_URL:-/api/v1}
     container_name: lifetracker-nginx
     restart: unless-stopped
     depends_on:

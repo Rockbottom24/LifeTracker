@@ -14,7 +14,8 @@ This folder contains the production helpers for LifeTracker.
 
 ## Notes
 
-- The frontend web app is built inside the Nginx image.
+- The Flutter web app must be built outside Docker and placed at `frontend/build/web`.
+- The server does not install Flutter or run `flutter build`.
 - The backend runs with `SPRING_PROFILES_ACTIVE=prod`.
 - Secrets must live in `.env` and never in the repository.
 - HTTPS is prepared via `deployment/nginx/https.conf.example` for Let's Encrypt.
