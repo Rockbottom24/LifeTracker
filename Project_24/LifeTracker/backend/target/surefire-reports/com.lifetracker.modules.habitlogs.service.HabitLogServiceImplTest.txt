@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: com.lifetracker.modules.habitlogs.service.HabitLogServiceImplTest
--------------------------------------------------------------------------------
-Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.363 s -- in com.lifetracker.modules.habitlogs.service.HabitLogServiceImplTest
