@@ -9,9 +9,10 @@
 
 
     <application
-        android:label="LifeTracker"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:label="LifeTracker"
+        android:icon="@mipmap/ic_launcher"
+        android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"

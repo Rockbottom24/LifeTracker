@@ -19,7 +19,6 @@ import java.util.Locale;
 import java.util.UUID;
 
 @Service
-@Transactional
 public class AuthServiceImpl implements AuthService {
     private final AppUserRepository appUserRepository;
     private final PasswordEncoder passwordEncoder;
@@ -39,6 +38,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public AuthResponse register(RegisterRequest request) {
         String email = normalizeEmail(request.email());
         if (appUserRepository.existsByEmailIgnoreCase(email)) {
@@ -62,6 +62,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest request) {
         String email = normalizeEmail(request.email());
         AppUser user = appUserRepository.findByEmailIgnoreCase(email)
