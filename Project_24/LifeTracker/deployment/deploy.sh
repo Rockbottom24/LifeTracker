@@ -10,11 +10,19 @@ if [[ ! -f "${ENV_FILE}" ]]; then
   exit 1
 fi
 
+if ! compgen -G "${ROOT_DIR}/backend/target/*.jar" > /dev/null; then
+  echo "Missing prebuilt backend JAR in backend/target."
+  echo "Build it locally first:"
+  echo "  cd backend && mvn -DskipTests clean package"
+  exit 1
+fi
+
 if [[ ! -f "${ROOT_DIR}/frontend/build/web/index.html" ]]; then
   echo "Missing prebuilt Flutter web output at frontend/build/web."
-  echo "Build it outside Docker first, for example:"
+  echo "Build it locally first:"
   echo "  cd frontend && flutter build web --release --dart-define=API_BASE_URL=/api/v1"
   exit 1
 fi
 
-docker compose --env-file "${ENV_FILE}" up -d --build
+docker compose --env-file "${ENV_FILE}" build
+docker compose --env-file "${ENV_FILE}" up -d

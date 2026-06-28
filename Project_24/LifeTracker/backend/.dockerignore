@@ -1,4 +1,5 @@
-target
-.mvn
-.idea
-.git
+*
+!Dockerfile
+!.dockerignore
+!target/
+!target/*.jar
