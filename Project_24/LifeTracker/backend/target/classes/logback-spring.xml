@@ -32,12 +32,13 @@
         </encoder>
     </appender>
 
-    <logger name="org.hibernate.SQL" level="${HIBERNATE_SQL_LEVEL:-WARN}" additivity="false">
+    <logger name="org.springframework.transaction" level="${SPRING_TRANSACTION_LOG_LEVEL:-TRACE}" />
+    <logger name="org.springframework.orm.jpa" level="${SPRING_ORM_JPA_LOG_LEVEL:-DEBUG}" />
+    <logger name="org.hibernate.SQL" level="${HIBERNATE_SQL_LEVEL:-DEBUG}" additivity="false">
         <appender-ref ref="SQL_FILE"/>
         <appender-ref ref="CONSOLE"/>
     </logger>
-
-    <logger name="org.hibernate.orm.jdbc.bind" level="${HIBERNATE_BIND_LEVEL:-WARN}" additivity="false">
+    <logger name="org.hibernate.orm.jdbc.bind" level="${HIBERNATE_BIND_LEVEL:-TRACE}" additivity="false">
         <appender-ref ref="SQL_FILE"/>
         <appender-ref ref="CONSOLE"/>
     </logger>

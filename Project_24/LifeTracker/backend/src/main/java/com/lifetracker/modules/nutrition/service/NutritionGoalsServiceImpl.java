@@ -10,38 +10,42 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional
 public class NutritionGoalsServiceImpl implements NutritionGoalsService {
     private final NutritionGoalsRepository nutritionGoalsRepository;
     private final NutritionGoalsMapper nutritionGoalsMapper;
     private final CurrentUserService currentUserService;
+    private final NutritionGoalsProvisioningService nutritionGoalsProvisioningService;
 
     public NutritionGoalsServiceImpl(
             NutritionGoalsRepository nutritionGoalsRepository,
             NutritionGoalsMapper nutritionGoalsMapper,
-            CurrentUserService currentUserService
+            CurrentUserService currentUserService,
+            NutritionGoalsProvisioningService nutritionGoalsProvisioningService
     ) {
         this.nutritionGoalsRepository = nutritionGoalsRepository;
         this.nutritionGoalsMapper = nutritionGoalsMapper;
         this.currentUserService = currentUserService;
+        this.nutritionGoalsProvisioningService = nutritionGoalsProvisioningService;
     }
 
     @Override
     @Transactional(readOnly = true)
     public NutritionGoalsResponse getGoals() {
-        return nutritionGoalsMapper.toResponse(findOrCreateGoals());
+        Long userId = currentUserService.getCurrentUserId();
+        // Keep the public lookup read-only. If defaults are missing, create them in a separate
+        // write transaction so the INSERT does not inherit this read-only boundary.
+        NutritionGoals goals = nutritionGoalsProvisioningService.findByOwnerUserId(userId)
+                .orElseGet(() -> nutritionGoalsProvisioningService.createDefaultGoals(userId));
+        return nutritionGoalsMapper.toResponse(goals);
     }
 
     @Override
+    @Transactional
     public NutritionGoalsResponse updateGoals(UpdateNutritionGoalsRequest request) {
-        NutritionGoals goals = findOrCreateGoals();
+        Long userId = currentUserService.getCurrentUserId();
+        NutritionGoals goals = nutritionGoalsProvisioningService.findByOwnerUserId(userId)
+                .orElseGet(() -> nutritionGoalsProvisioningService.createDefaultGoals(userId));
         nutritionGoalsMapper.updateEntity(goals, request);
         return nutritionGoalsMapper.toResponse(nutritionGoalsRepository.save(goals));
-    }
-
-    NutritionGoals findOrCreateGoals() {
-        Long userId = currentUserService.getCurrentUserId();
-        return nutritionGoalsRepository.findByOwnerUserId(userId)
-                .orElseGet(() -> nutritionGoalsRepository.save(nutritionGoalsMapper.createDefault(userId)));
     }
 }

@@ -118,6 +118,7 @@
 /home/ramesh/Desktop/Project_24/LifeTracker/backend/src/main/java/com/lifetracker/modules/nutrition/mapper/NutritionGoalsMapper.java
 /home/ramesh/Desktop/Project_24/LifeTracker/backend/src/main/java/com/lifetracker/modules/nutrition/repository/NutritionGoalsRepository.java
 /home/ramesh/Desktop/Project_24/LifeTracker/backend/src/main/java/com/lifetracker/modules/nutrition/service/NutritionDashboardBuilder.java
+/home/ramesh/Desktop/Project_24/LifeTracker/backend/src/main/java/com/lifetracker/modules/nutrition/service/NutritionGoalsProvisioningService.java
 /home/ramesh/Desktop/Project_24/LifeTracker/backend/src/main/java/com/lifetracker/modules/nutrition/service/NutritionGoalsService.java
 /home/ramesh/Desktop/Project_24/LifeTracker/backend/src/main/java/com/lifetracker/modules/nutrition/service/NutritionGoalsServiceImpl.java
 /home/ramesh/Desktop/Project_24/LifeTracker/backend/src/main/java/com/lifetracker/modules/nutrition/service/NutritionInsightsBuilder.java

@@ -71,6 +71,7 @@ com/lifetracker/modules/habits/dto/HabitResponse.class
 com/lifetracker/modules/habits/api/HabitController.class
 com/lifetracker/modules/learning/dto/UpdateLearningRequest.class
 com/lifetracker/modules/settings/dto/SettingsResponse.class
+com/lifetracker/modules/nutrition/service/NutritionGoalsProvisioningService.class
 com/lifetracker/modules/auth/security/CurrentUserService.class
 com/lifetracker/modules/foods/dto/FoodResponse.class
 com/lifetracker/modules/expenses/dto/UpdateExpenseRequest.class
