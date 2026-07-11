@@ -22,12 +22,12 @@ class StatsGrid extends StatelessWidget {
     final rank = _rankForLevel(level);
 
     final items = [
+      _StatItem(title: 'Honor Points', value: summary.earnedPoints, suffix: ' / ${summary.possiblePoints}'),
       _StatItem(title: 'Experience', value: experience, suffix: ' XP'),
       _StatItem(title: 'Level', value: level),
       _StatItem(title: 'Rank', value: rank, isText: true),
       _StatItem(title: 'Completed Today', value: summary.completedHabits),
       _StatItem(title: 'Daily Quests', value: summary.totalHabits),
-      _StatItem(title: 'Completion Rate', value: summary.completionPercentage.round(), suffix: '%'),
     ];
 
     return FadeInSection(

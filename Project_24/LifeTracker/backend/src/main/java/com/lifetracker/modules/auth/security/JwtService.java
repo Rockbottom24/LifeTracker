@@ -19,7 +19,7 @@ public class JwtService {
 
     public JwtService(
             @Value("${lifetracker.jwt.secret}") String secret,
-            @Value("${lifetracker.jwt.expiration-ms:86400000}") long expirationMs
+            @Value("${lifetracker.jwt.expiration-ms:900000}") long expirationMs
     ) {
         this.secretKey = resolveSecretKey(secret);
         this.expirationMs = expirationMs;

@@ -4,6 +4,7 @@ class LearningNotificationHelper {
   const LearningNotificationHelper._();
 
   static Future<void> scheduleIfEnabled({
+    required int userId,
     required int sessionId,
     required String title,
     required int hour,
@@ -11,6 +12,7 @@ class LearningNotificationHelper {
     required bool notificationsEnabled,
   }) {
     return ReminderNotificationHelper.scheduleIfEnabled(
+      userId: userId,
       entityType: ReminderEntityType.learning,
       entityId: sessionId,
       title: title,
@@ -20,8 +22,9 @@ class LearningNotificationHelper {
     );
   }
 
-  static Future<void> cancelForSession(int sessionId) {
+  static Future<void> cancelForSession({required int userId, required int sessionId}) {
     return ReminderNotificationHelper.cancel(
+      userId: userId,
       entityType: ReminderEntityType.learning,
       entityId: sessionId,
     );

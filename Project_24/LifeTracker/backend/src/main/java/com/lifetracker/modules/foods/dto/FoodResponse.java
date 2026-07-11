@@ -4,6 +4,7 @@ import com.lifetracker.modules.foods.enums.FoodCategory;
 import com.lifetracker.modules.foods.enums.ServingUnit;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 public record FoodResponse(
@@ -23,6 +24,11 @@ public record FoodResponse(
         String barcode,
         String brand,
         String imageUrl,
-        String source
+        String source,
+        BigDecimal gramsPerPiece,
+        ServingUnit householdUnit,
+        BigDecimal householdQuantity,
+        BigDecimal householdGrams,
+        List<ServingUnit> supportedUnits
 ) {
 }

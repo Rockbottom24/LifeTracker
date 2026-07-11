@@ -324,12 +324,15 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
   (double, double) _defaultServingValues(ServingUnit unit) {
     return switch (unit) {
       ServingUnit.gram => (100, 100),
+      ServingUnit.kilogram => (1, 1000),
       ServingUnit.ml => (250, 250),
+      ServingUnit.liter => (1, 1000),
       ServingUnit.piece => (1, 50),
       ServingUnit.scoop => (1, 30),
       ServingUnit.tablespoon => (1, 13.5),
       ServingUnit.teaspoon => (1, 5),
       ServingUnit.cup => (1, 240),
+      ServingUnit.serving => (1, 100),
     };
   }
 }

@@ -87,6 +87,19 @@ public class FoodItem {
     @Column(name = "source")
     private String source;
 
+    @Column(name = "grams_per_piece", precision = 10, scale = 4)
+    private BigDecimal gramsPerPiece;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "household_unit", length = 20)
+    private ServingUnit householdUnit;
+
+    @Column(name = "household_quantity", precision = 10, scale = 4)
+    private BigDecimal householdQuantity;
+
+    @Column(name = "household_grams", precision = 10, scale = 4)
+    private BigDecimal householdGrams;
+
     public String getBarcode() {
         return barcode;
     }
@@ -117,6 +130,38 @@ public class FoodItem {
 
     public void setSource(String source) {
         this.source = source;
+    }
+
+    public BigDecimal getGramsPerPiece() {
+        return gramsPerPiece;
+    }
+
+    public void setGramsPerPiece(BigDecimal gramsPerPiece) {
+        this.gramsPerPiece = gramsPerPiece;
+    }
+
+    public ServingUnit getHouseholdUnit() {
+        return householdUnit;
+    }
+
+    public void setHouseholdUnit(ServingUnit householdUnit) {
+        this.householdUnit = householdUnit;
+    }
+
+    public BigDecimal getHouseholdQuantity() {
+        return householdQuantity;
+    }
+
+    public void setHouseholdQuantity(BigDecimal householdQuantity) {
+        this.householdQuantity = householdQuantity;
+    }
+
+    public BigDecimal getHouseholdGrams() {
+        return householdGrams;
+    }
+
+    public void setHouseholdGrams(BigDecimal householdGrams) {
+        this.householdGrams = householdGrams;
     }
 
     public Long getId() {

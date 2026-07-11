@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../providers/auth_provider.dart';
 import '../providers/dashboard_provider.dart';
 import '../providers/expense_provider.dart';
 import '../providers/food_provider.dart';
@@ -17,6 +18,7 @@ import '../screens/nutrition_screen.dart';
 import '../services/api_client.dart';
 import '../sync/sync_engine.dart';
 import '../theme/app_spacing.dart';
+import '../utils/user_reminder_scheduler.dart';
 
 class AppNavigation extends StatefulWidget {
   const AppNavigation({required this.apiClient, required this.syncEngine, super.key});
@@ -39,6 +41,7 @@ class _AppNavigationState extends State<AppNavigation> with WidgetsBindingObserv
 
   int _selectedIndex = 0;
   Timer? _syncTimer;
+  bool _remindersScheduled = false;
 
   @override
   void initState() {
@@ -81,6 +84,19 @@ class _AppNavigationState extends State<AppNavigation> with WidgetsBindingObserv
       context.read<FoodProvider>().loadFoods(),
       context.read<MealProvider>().refreshNutritionData(),
     ]);
+
+    if (!mounted) return;
+    if (!_remindersScheduled) {
+      final userId = context.read<AuthProvider>().userId;
+      if (userId != null) {
+        await UserReminderScheduler.rescheduleForUser(
+          userId: userId,
+          habits: context.read<HabitProvider>().habits,
+          sessions: context.read<LearningProvider>().sessions,
+        );
+        _remindersScheduled = true;
+      }
+    }
   }
 
   void _reloadLocalState() {

@@ -1,3 +1,5 @@
+import 'serving_unit.dart';
+
 class ScannedFood {
   final int? foodId;
   final bool local;
@@ -13,6 +15,16 @@ class ScannedFood {
   final double fat;
   final double fiber;
 
+  final String servingSizeText;
+  final ServingUnit? servingUnit;
+  final double? referenceQuantity;
+  final double? referenceWeight;
+  final double? gramsPerPiece;
+  final ServingUnit? householdUnit;
+  final double? householdQuantity;
+  final double? householdGrams;
+  final List<ServingUnit> supportedUnits;
+
   const ScannedFood({
     this.foodId,
     this.local = false,
@@ -26,6 +38,15 @@ class ScannedFood {
     required this.carbs,
     required this.fat,
     required this.fiber,
+    this.servingSizeText = '',
+    this.servingUnit,
+    this.referenceQuantity,
+    this.referenceWeight,
+    this.gramsPerPiece,
+    this.householdUnit,
+    this.householdQuantity,
+    this.householdGrams,
+    this.supportedUnits = const [],
   });
 
   factory ScannedFood.fromJson(Map<String, dynamic> json) {
@@ -42,13 +63,44 @@ class ScannedFood {
       carbs: _toDouble(json['carbs']),
       fat: _toDouble(json['fat']),
       fiber: _toDouble(json['fiber']),
+      servingSizeText: json['servingSizeText']?.toString() ?? '',
+      servingUnit: ServingUnit.tryFromApiValue(json['servingUnit']?.toString()),
+      referenceQuantity: _toNullableDouble(json['referenceQuantity']),
+      referenceWeight: _toNullableDouble(json['referenceWeight']),
+      gramsPerPiece: _toNullableDouble(json['gramsPerPiece']),
+      householdUnit: ServingUnit.tryFromApiValue(json['householdUnit']?.toString()),
+      householdQuantity: _toNullableDouble(json['householdQuantity']),
+      householdGrams: _toNullableDouble(json['householdGrams']),
+      supportedUnits: _parseSupportedUnits(json['supportedUnits']),
     );
+  }
+
+  List<ServingUnit> get effectiveSupportedUnits {
+    if (supportedUnits.isNotEmpty) return supportedUnits;
+    final unit = servingUnit ?? ServingUnit.gram;
+    return [unit, ServingUnit.gram];
+  }
+
+  static List<ServingUnit> _parseSupportedUnits(dynamic value) {
+    if (value is! List) return const [];
+    final units = <ServingUnit>[];
+    for (final item in value) {
+      final unit = ServingUnit.tryFromApiValue(item?.toString());
+      if (unit != null) units.add(unit);
+    }
+    return units;
   }
 
   static double _toDouble(dynamic value) {
     if (value == null) return 0;
     if (value is num) return value.toDouble();
     return double.tryParse(value.toString()) ?? 0;
+  }
+
+  static double? _toNullableDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is num) return value.toDouble();
+    return double.tryParse(value.toString());
   }
 
   static int? _toInt(dynamic value) {

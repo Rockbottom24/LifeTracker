@@ -1,5 +1,6 @@
 package com.lifetracker.shared.application.exception;
 
+import com.lifetracker.modules.meals.exception.NutritionCalculationException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +32,13 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<Map<String, String>> handleConstraintViolation(ConstraintViolationException ex) {
+        Map<String, String> errors = new HashMap<>();
+        errors.put("error", ex.getMessage());
+        return ResponseEntity.badRequest().body(errors);
+    }
+
+    @ExceptionHandler(NutritionCalculationException.class)
+    public ResponseEntity<Map<String, String>> handleNutritionCalculation(NutritionCalculationException ex) {
         Map<String, String> errors = new HashMap<>();
         errors.put("error", ex.getMessage());
         return ResponseEntity.badRequest().body(errors);

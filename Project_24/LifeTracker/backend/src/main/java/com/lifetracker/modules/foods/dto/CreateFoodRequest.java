@@ -12,8 +12,8 @@ public record CreateFoodRequest(
         @NotBlank String name,
         @NotNull FoodCategory category,
         @NotNull ServingUnit servingUnit,
-        @NotNull @DecimalMin("0") BigDecimal referenceQuantity,
-        @NotNull @DecimalMin("0") BigDecimal referenceWeight,
+        @NotNull @DecimalMin(value = "0.0", inclusive = false, message = "referenceQuantity must be greater than zero") BigDecimal referenceQuantity,
+        @NotNull @DecimalMin(value = "0.0", inclusive = false, message = "referenceWeight must be greater than zero") BigDecimal referenceWeight,
         @NotNull @DecimalMin("0") BigDecimal calories,
         @NotNull @DecimalMin("0") BigDecimal protein,
         @NotNull @DecimalMin("0") BigDecimal carbs,
@@ -22,6 +22,10 @@ public record CreateFoodRequest(
         String barcode,
         String brand,
         String imageUrl,
-        String source
+        String source,
+        @DecimalMin(value = "0.0", inclusive = false) BigDecimal gramsPerPiece,
+        ServingUnit householdUnit,
+        @DecimalMin(value = "0.0", inclusive = false) BigDecimal householdQuantity,
+        @DecimalMin(value = "0.0", inclusive = false) BigDecimal householdGrams
 ) {
 }

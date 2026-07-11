@@ -2,6 +2,7 @@ package com.lifetracker.modules.auth.api;
 
 import com.lifetracker.modules.auth.dto.AuthResponse;
 import com.lifetracker.modules.auth.dto.LoginRequest;
+import com.lifetracker.modules.auth.dto.RefreshTokenRequest;
 import com.lifetracker.modules.auth.dto.RegisterRequest;
 import com.lifetracker.modules.auth.dto.UserResponse;
 import com.lifetracker.modules.auth.service.AuthService;
@@ -40,6 +41,21 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(ApiResponse.success("Login successful", authService.login(request)));
+    }
+
+    @Operation(summary = "Refresh access token using a refresh token")
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<AuthResponse>> refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        return ResponseEntity.ok(ApiResponse.success("Token refreshed", authService.refresh(request.refreshToken())));
+    }
+
+    @Operation(summary = "Logout and revoke the current refresh token")
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(@RequestBody(required = false) RefreshTokenRequest request) {
+        if (request != null) {
+            authService.logout(request.refreshToken());
+        }
+        return ResponseEntity.ok(ApiResponse.success("Logout successful", null));
     }
 
     @Operation(summary = "Get the current authenticated user")

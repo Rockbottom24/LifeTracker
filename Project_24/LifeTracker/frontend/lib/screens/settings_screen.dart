@@ -61,7 +61,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _sendTestNotification() async {
-    await NotificationService().showTestNotification();
+    final userId = context.read<AuthProvider>().userId;
+    if (userId == null) return;
+    await NotificationService().showTestNotification(userId: userId);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('A raven has been sent.')),
@@ -74,7 +76,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _isScheduling = true;
     });
 
-    await NotificationService().scheduleDailyReminder(hour: 8, minute: 0);
+    final userId = context.read<AuthProvider>().userId;
+    if (userId == null) return;
+    await NotificationService().scheduleDailyReminder(userId: userId, hour: 8, minute: 0);
 
     setState(() {
       _isScheduling = false;
@@ -88,7 +92,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _cancelNotifications() async {
-    await NotificationService().cancelAllNotifications();
+    final userId = context.read<AuthProvider>().userId;
+    if (userId != null) {
+      await NotificationService().cancelNotificationsForUser(userId);
+    } else {
+      await NotificationService().cancelAllNotifications();
+    }
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('All ravens dismissed.')),

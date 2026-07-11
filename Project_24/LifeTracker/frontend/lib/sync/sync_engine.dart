@@ -302,6 +302,12 @@ class SyncEngine {
           currentDate: DateTime.now(),
           greeting: remote.greeting ?? local.greeting,
           userName: remote.userName ?? local.userName,
+          firstName: remote.firstName ?? local.firstName,
+          houseKey: remote.houseKey ?? local.houseKey,
+          houseDisplayName: remote.houseDisplayName ?? local.houseDisplayName,
+          welcomeTitle: remote.welcomeTitle ?? local.welcomeTitle,
+          welcomeSubtitle: remote.welcomeSubtitle ?? local.welcomeSubtitle,
+          dayStatusMessage: remote.dayStatusMessage ?? local.dayStatusMessage,
           summary: DashboardSummary(
             totalHabits: local.summary?.totalHabits ?? 0,
             completedHabits: local.summary?.completedHabits ?? 0,
@@ -309,8 +315,10 @@ class SyncEngine {
             completionPercentage: local.summary?.completionPercentage ?? 0,
             currentStreak: remote.summary?.currentStreak ?? local.summary?.currentStreak ?? 0,
             longestStreak: remote.summary?.longestStreak ?? local.summary?.longestStreak ?? 0,
+            earnedPoints: remote.summary?.earnedPoints ?? local.summary?.earnedPoints ?? 0,
+            possiblePoints: remote.summary?.possiblePoints ?? local.summary?.possiblePoints ?? 0,
           ),
-          todayHabits: local.todayHabits,
+          todayHabits: _mergeTodayHabits(remote.todayHabits, local.todayHabits),
         ),
       );
     } catch (error) {
@@ -324,6 +332,34 @@ class SyncEngine {
     final stored = _offlineStore.findHabitById(entityId);
     if (stored == null) return null;
     return stored.habit.id > 0 ? stored.habit.id : null;
+  }
+
+  List<TodayHabit>? _mergeTodayHabits(List<TodayHabit>? remote, List<TodayHabit>? local) {
+    if (local == null || local.isEmpty) return remote ?? local;
+    if (remote == null || remote.isEmpty) return local;
+
+    final remoteById = <int, TodayHabit>{};
+    for (final item in remote) {
+      if (item.habitId != null) remoteById[item.habitId!] = item;
+    }
+
+    return local.map((item) {
+      final remoteItem = item.habitId == null ? null : remoteById[item.habitId!];
+      if (remoteItem == null) return item;
+      return TodayHabit(
+        habitId: item.habitId,
+        habitName: item.habitName ?? remoteItem.habitName,
+        icon: item.icon ?? remoteItem.icon,
+        color: item.color ?? remoteItem.color,
+        completed: item.completed,
+        targetValue: item.targetValue ?? remoteItem.targetValue,
+        currentValue: item.currentValue ?? remoteItem.currentValue,
+        points: remoteItem.points > 0 ? remoteItem.points : item.points,
+        pointsAwarded: item.completed
+            ? (remoteItem.pointsAwarded > 0 ? remoteItem.pointsAwarded : item.pointsAwarded)
+            : 0,
+      );
+    }).toList();
   }
 
   int? _resolveLearningEntityId(int? entityId) {

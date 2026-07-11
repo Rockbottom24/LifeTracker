@@ -12,6 +12,7 @@ class AppTextField extends StatelessWidget {
     this.maxLines = 1,
     this.textInputAction,
     this.onSubmitted,
+    this.onChanged,
     this.validator,
     this.focusNode,
     this.autofocus = false,
@@ -26,6 +27,7 @@ class AppTextField extends StatelessWidget {
   final int maxLines;
   final TextInputAction? textInputAction;
   final ValueChanged<String>? onSubmitted;
+  final ValueChanged<String>? onChanged;
   final String? Function(String?)? validator;
   final FocusNode? focusNode;
   final bool autofocus;
@@ -51,6 +53,7 @@ class AppTextField extends StatelessWidget {
           obscureText: obscureText,
           textInputAction: textInputAction,
           onFieldSubmitted: onSubmitted,
+          onChanged: onChanged,
           validator: validator,
           decoration: InputDecoration(
             hintText: hint,

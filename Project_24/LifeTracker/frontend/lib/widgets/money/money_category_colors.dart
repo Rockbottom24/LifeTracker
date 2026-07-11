@@ -7,6 +7,9 @@ class MoneyCategoryColors {
     return switch (category) {
       'Food' => const Color(0xFFFF7043),
       'Fitness' => const Color(0xFF26A69A),
+      'Gym' => const Color(0xFF00897B),
+      'Chicken' => const Color(0xFFFFA726),
+      'Eggs' => const Color(0xFFFFCA28),
       'Entertainment' => const Color(0xFFAB47BC),
       'Shopping' => const Color(0xFF5C6BC0),
       'Medical' => const Color(0xFFEF5350),

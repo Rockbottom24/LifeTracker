@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/auth/auth_response.dart';
 import '../models/auth/login_request.dart';
@@ -7,19 +6,23 @@ import '../models/auth/register_request.dart';
 import '../models/auth/user_response.dart';
 import '../theme/house_theme.dart';
 import '../services/api_client.dart';
-import '../services/api_constants.dart';
 import '../services/auth_service.dart';
+import '../services/auth_token_store.dart';
+import '../services/notification_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   AuthProvider({
-    required this._sharedPreferences,
-    required this._authService,
-    required this._apiClient,
-  }) {
+    required AuthTokenStore tokenStore,
+    required AuthService authService,
+    required DioApiClient apiClient,
+  })  : _tokenStore = tokenStore,
+        _authService = authService,
+        _apiClient = apiClient {
     _apiClient.onUnauthorized = _handleUnauthorized;
+    _apiClient.tokenRefresher = tryRefreshSession;
   }
 
-  final SharedPreferences _sharedPreferences;
+  final AuthTokenStore _tokenStore;
   final AuthService _authService;
   final DioApiClient _apiClient;
 
@@ -31,6 +34,7 @@ class AuthProvider extends ChangeNotifier {
   String? email;
   String? firstName;
   String? houseKey;
+  bool _logoutInProgress = false;
 
   HouseTheme get house => HouseTheme.fromKey(houseKey);
   String get profileLabel => '${firstName ?? 'Traveler'} of ${house.displayName}';
@@ -39,22 +43,64 @@ class AuthProvider extends ChangeNotifier {
     isInitializing = true;
     notifyListeners();
 
-    final token = _sharedPreferences.getString(ApiConstants.accessTokenKey);
-    if (token == null || token.isEmpty) {
+    await _tokenStore.migrateLegacyAccessTokenIfNeeded();
+
+    final hasSession = await _tokenStore.hasSessionArtifacts();
+    if (!hasSession) {
       _clearSessionState();
       isInitializing = false;
       notifyListeners();
       return;
     }
 
+    _restoreProfileFromStore();
+
     try {
       final user = await _authService.getCurrentUser();
       _applyUser(user);
+      await _tokenStore.persistProfile(
+        userId: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        houseKey: user.houseKey,
+      );
       isAuthenticated = true;
       errorMessage = null;
+    } on ApiException catch (error) {
+      if (error.statusCode == 401) {
+        final outcome = await tryRefreshSession();
+        if (outcome == RefreshOutcome.success) {
+          try {
+            final user = await _authService.getCurrentUser();
+            _applyUser(user);
+            await _tokenStore.persistProfile(
+              userId: user.id,
+              email: user.email,
+              firstName: user.firstName,
+              houseKey: user.houseKey,
+            );
+            isAuthenticated = true;
+            errorMessage = null;
+          } on ApiException catch (retryError) {
+            if (retryError.statusCode == 401) {
+              await _forceClearSession();
+            } else {
+              _keepOfflineAuthenticatedSession();
+            }
+          } catch (_) {
+            _keepOfflineAuthenticatedSession();
+          }
+        } else if (outcome == RefreshOutcome.invalidSession) {
+          await _forceClearSession();
+        } else {
+          _keepOfflineAuthenticatedSession();
+        }
+      } else {
+        // Network/timeout/5xx — preserve local login.
+        _keepOfflineAuthenticatedSession();
+      }
     } catch (_) {
-      await _clearStoredSession();
-      _clearSessionState();
+      _keepOfflineAuthenticatedSession();
     } finally {
       isInitializing = false;
       notifyListeners();
@@ -70,9 +116,42 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> logout() async {
-    await _clearStoredSession();
-    _clearSessionState();
-    notifyListeners();
+    if (_logoutInProgress) return;
+    _logoutInProgress = true;
+    try {
+      final currentUserId = userId ?? _tokenStore.readUserId();
+      if (currentUserId != null) {
+        await NotificationService().cancelNotificationsForUser(currentUserId);
+      } else {
+        await NotificationService().cancelAllNotifications();
+      }
+      await _authService.logoutRemote();
+      await _tokenStore.clear();
+      _clearSessionState();
+      notifyListeners();
+    } finally {
+      _logoutInProgress = false;
+    }
+  }
+
+  Future<RefreshOutcome> tryRefreshSession() async {
+    try {
+      final response = await _authService.refreshSession();
+      await _persistSession(response);
+      userId = response.userId;
+      email = response.email;
+      firstName = response.firstName;
+      houseKey = response.houseKey;
+      isAuthenticated = true;
+      return RefreshOutcome.success;
+    } on ApiException catch (error) {
+      if (error.statusCode == 401) {
+        return RefreshOutcome.invalidSession;
+      }
+      return RefreshOutcome.transientFailure;
+    } catch (_) {
+      return RefreshOutcome.transientFailure;
+    }
   }
 
   void clearError() {
@@ -86,6 +165,11 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final previousUserId = userId ?? _tokenStore.readUserId();
+      if (previousUserId != null) {
+        await NotificationService().cancelNotificationsForUser(previousUserId);
+      }
+
       final response = await action();
       await _persistSession(response);
       userId = response.userId;
@@ -107,21 +191,44 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> _persistSession(AuthResponse response) async {
-    await _sharedPreferences.setString(ApiConstants.accessTokenKey, response.accessToken);
-    await _sharedPreferences.setInt(ApiConstants.userIdKey, response.userId);
-    await _sharedPreferences.setString(ApiConstants.userEmailKey, response.email);
-    if (response.firstName.isNotEmpty) {
-      await _sharedPreferences.setString(ApiConstants.userDisplayNameKey, response.firstName);
+    await _tokenStore.persistTokens(
+      accessToken: response.accessToken,
+      refreshToken: response.refreshToken,
+    );
+    await _tokenStore.persistProfile(
+      userId: response.userId,
+      email: response.email,
+      firstName: response.firstName,
+      houseKey: response.houseKey,
+    );
+  }
+
+  void _restoreProfileFromStore() {
+    userId = _tokenStore.readUserId();
+    email = _tokenStore.readEmail();
+    firstName = _tokenStore.readFirstName();
+    houseKey = _tokenStore.readHouseKey();
+  }
+
+  void _keepOfflineAuthenticatedSession() {
+    _restoreProfileFromStore();
+    if (userId != null) {
+      isAuthenticated = true;
+      errorMessage = null;
     } else {
-      await _sharedPreferences.remove(ApiConstants.userDisplayNameKey);
+      isAuthenticated = false;
     }
   }
 
-  Future<void> _clearStoredSession() async {
-    await _sharedPreferences.remove(ApiConstants.accessTokenKey);
-    await _sharedPreferences.remove(ApiConstants.userIdKey);
-    await _sharedPreferences.remove(ApiConstants.userEmailKey);
-    await _sharedPreferences.remove(ApiConstants.userDisplayNameKey);
+  Future<void> _forceClearSession() async {
+    final currentUserId = userId ?? _tokenStore.readUserId();
+    if (currentUserId != null) {
+      await NotificationService().cancelNotificationsForUser(currentUserId);
+    } else {
+      await NotificationService().cancelAllNotifications();
+    }
+    await _tokenStore.clear();
+    _clearSessionState();
   }
 
   void _applyUser(UserResponse user) {
@@ -140,7 +247,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   void _handleUnauthorized() {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || _logoutInProgress) return;
     logout();
   }
 }

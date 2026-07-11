@@ -8,27 +8,34 @@ import '../fade_in_section.dart';
 class DashboardHeroCard extends StatelessWidget {
   const DashboardHeroCard({
     super.key,
-    required this.profileLabel,
+    required this.welcomeTitle,
+    required this.welcomeSubtitle,
+    required this.dayStatusMessage,
     required this.house,
-    required this.houseMotto,
     required this.currentDate,
-    required this.experience,
-    required this.level,
-    required this.rank,
+    required this.earnedPoints,
+    required this.possiblePoints,
+    required this.questCount,
+    required this.completedQuests,
+    this.caloriesConsumed,
   });
 
-  final String profileLabel;
+  final String welcomeTitle;
+  final String welcomeSubtitle;
+  final String dayStatusMessage;
   final HouseTheme house;
-  final String houseMotto;
   final DateTime currentDate;
-  final int experience;
-  final int level;
-  final String rank;
+  final int earnedPoints;
+  final int possiblePoints;
+  final int questCount;
+  final int completedQuests;
+  final double? caloriesConsumed;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final dateLabel = DashboardFormatters.formatDate(currentDate);
+    const gold = Color(0xFFC4B28B);
 
     return FadeInSection(
       index: 0,
@@ -40,36 +47,40 @@ class DashboardHeroCard extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: house.bannerGradient.map((color) => color.withValues(alpha: 0.98)).toList(),
+            colors: [
+              const Color(0xFF0B0D10),
+              ...house.bannerGradient.map((color) => color.withValues(alpha: 0.92)),
+            ],
           ),
           boxShadow: [
             BoxShadow(
-              color: house.accent.withValues(alpha: 0.24),
+              color: house.accent.withValues(alpha: 0.2),
               blurRadius: 24,
               offset: const Offset(0, 10),
             ),
           ],
-          border: Border.all(color: house.accent.withValues(alpha: 0.18)),
+          border: Border.all(color: gold.withValues(alpha: 0.28)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Welcome back,',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: Colors.white.withValues(alpha: 0.86),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              profileLabel,
+              welcomeTitle,
               style: theme.textTheme.headlineMedium?.copyWith(
                 color: Colors.white,
                 fontWeight: FontWeight.w800,
               ),
             ),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              welcomeSubtitle,
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: gold.withValues(alpha: 0.95),
+                fontWeight: FontWeight.w600,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
             Wrap(
               spacing: AppSpacing.sm,
               runSpacing: AppSpacing.sm,
@@ -80,11 +91,10 @@ class DashboardHeroCard extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.lg),
             Text(
-              houseMotto,
+              "Today's Chronicle",
               style: theme.textTheme.titleLarge?.copyWith(
-                color: Colors.white.withValues(alpha: 0.95),
+                color: Colors.white.withValues(alpha: 0.96),
                 fontWeight: FontWeight.w700,
-                fontStyle: FontStyle.italic,
               ),
             ),
             const SizedBox(height: AppSpacing.md),
@@ -92,10 +102,28 @@ class DashboardHeroCard extends StatelessWidget {
               spacing: AppSpacing.sm,
               runSpacing: AppSpacing.sm,
               children: [
-                _ProgressPill(label: 'Experience', value: '$experience XP'),
-                _ProgressPill(label: 'Level', value: '$level'),
-                _ProgressPill(label: 'Rank', value: rank),
+                _ProgressPill(
+                  label: 'Honor Points',
+                  value: '$earnedPoints / $possiblePoints',
+                ),
+                _ProgressPill(
+                  label: 'Quests',
+                  value: '$completedQuests / $questCount',
+                ),
+                if (caloriesConsumed != null)
+                  _ProgressPill(
+                    label: 'Calories',
+                    value: '${caloriesConsumed!.round()} kcal',
+                  ),
               ],
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              dayStatusMessage,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: Colors.white.withValues(alpha: 0.82),
+                height: 1.4,
+              ),
             ),
           ],
         ),
@@ -120,7 +148,7 @@ class _AccentPill extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+        border: Border.all(color: const Color(0xFFC4B28B).withValues(alpha: 0.22)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -154,9 +182,9 @@ class _ProgressPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.16),
+        color: Colors.black.withValues(alpha: 0.22),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+        border: Border.all(color: const Color(0xFFC4B28B).withValues(alpha: 0.18)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

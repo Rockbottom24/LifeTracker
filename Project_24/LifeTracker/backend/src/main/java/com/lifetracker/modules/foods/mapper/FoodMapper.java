@@ -4,6 +4,7 @@ import com.lifetracker.modules.foods.dto.CreateFoodRequest;
 import com.lifetracker.modules.foods.dto.FoodResponse;
 import com.lifetracker.modules.foods.dto.UpdateFoodRequest;
 import com.lifetracker.modules.foods.entity.FoodItem;
+import com.lifetracker.modules.foods.model.FoodConversionContext;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -32,6 +33,7 @@ public class FoodMapper {
     }
 
     public FoodResponse toResponse(FoodItem food) {
+        FoodConversionContext context = toConversionContext(food);
         return new FoodResponse(
                 food.getId(),
                 food.getUuid(),
@@ -49,12 +51,29 @@ public class FoodMapper {
                 normalize(food.getBarcode()),
                 normalize(food.getBrand()),
                 normalize(food.getImageUrl()),
-                normalize(food.getSource())
+                normalize(food.getSource()),
+                food.getGramsPerPiece(),
+                food.getHouseholdUnit(),
+                food.getHouseholdQuantity(),
+                food.getHouseholdGrams(),
+                context.supportedUnits()
         );
     }
 
     public List<FoodResponse> toResponseList(List<FoodItem> foods) {
         return foods.stream().map(this::toResponse).toList();
+    }
+
+    public static FoodConversionContext toConversionContext(FoodItem food) {
+        return FoodConversionContext.of(
+                food.getServingUnit(),
+                food.getReferenceQuantity(),
+                food.getReferenceWeight(),
+                food.getGramsPerPiece(),
+                food.getHouseholdUnit(),
+                food.getHouseholdQuantity(),
+                food.getHouseholdGrams()
+        );
     }
 
     private void applyCreateRequest(FoodItem food, CreateFoodRequest request) {
@@ -72,6 +91,10 @@ public class FoodMapper {
         food.setBrand(normalizeNullable(request.brand()));
         food.setImageUrl(normalizeNullable(request.imageUrl()));
         food.setSource(normalizeNullable(request.source()));
+        food.setGramsPerPiece(request.gramsPerPiece());
+        food.setHouseholdUnit(request.householdUnit());
+        food.setHouseholdQuantity(request.householdQuantity());
+        food.setHouseholdGrams(request.householdGrams());
     }
 
     private void applyUpdateRequest(FoodItem food, UpdateFoodRequest request) {
@@ -97,6 +120,10 @@ public class FoodMapper {
         if (request.source() != null) {
             food.setSource(normalizeNullable(request.source()));
         }
+        food.setGramsPerPiece(request.gramsPerPiece());
+        food.setHouseholdUnit(request.householdUnit());
+        food.setHouseholdQuantity(request.householdQuantity());
+        food.setHouseholdGrams(request.householdGrams());
     }
 
     private String normalize(String value) {

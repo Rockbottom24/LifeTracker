@@ -19,6 +19,7 @@ class AddHabitFormContent extends StatelessWidget {
     super.key,
     required this.nameController,
     required this.descriptionController,
+    required this.pointsController,
     required this.nameFocusNode,
     required this.descriptionFocusNode,
     this.autofocusName = false,
@@ -41,6 +42,7 @@ class AddHabitFormContent extends StatelessWidget {
 
   final TextEditingController nameController;
   final TextEditingController descriptionController;
+  final TextEditingController pointsController;
   final FocusNode nameFocusNode;
   final FocusNode descriptionFocusNode;
   final bool autofocusName;
@@ -93,8 +95,26 @@ class AddHabitFormContent extends StatelessWidget {
             label: 'Description',
             hint: 'Optional details about this habit',
             maxLines: isTablet ? 2 : 3,
-            textInputAction: TextInputAction.done,
+            textInputAction: TextInputAction.next,
             onSubmitted: (_) => FocusScope.of(context).unfocus(),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          AppTextField(
+            controller: pointsController,
+            label: 'Honor Points',
+            hint: 'e.g. 10',
+            keyboardType: TextInputType.number,
+            textInputAction: TextInputAction.done,
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return null;
+              }
+              final parsed = int.tryParse(value.trim());
+              if (parsed == null || parsed < 0) {
+                return 'Enter a non-negative whole number';
+              }
+              return null;
+            },
           ),
         ],
       ),

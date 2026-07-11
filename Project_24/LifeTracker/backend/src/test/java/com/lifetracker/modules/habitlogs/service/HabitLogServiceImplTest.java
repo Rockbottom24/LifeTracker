@@ -107,6 +107,97 @@ class HabitLogServiceImplTest {
         assertTrue(response.completed());
     }
 
+    @Test
+    void completeHabit_snapshotsConfiguredPoints() {
+        Habit habit = activeHabit(11L);
+        habit.setPoints(15);
+        when(habitRepository.findByIdAndUserId(11L, 1L)).thenReturn(Optional.of(habit));
+        when(habitLogRepository.findTopByHabitIdAndLoggedAtBetweenOrderByLoggedAtDescIdDesc(
+                eq(11L), any(), any())).thenReturn(Optional.empty());
+        when(habitLogRepository.saveAndFlush(any(HabitLog.class))).thenAnswer(invocation -> {
+            HabitLog log = invocation.getArgument(0);
+            log.setId(200L);
+            return log;
+        });
+
+        var response = habitLogService.completeHabit(new CompleteHabitRequest(11L, BigDecimal.ONE, null));
+
+        assertEquals(15, response.pointsAwarded());
+        assertEquals(15, response.habitPoints());
+        ArgumentCaptor<HabitLog> captor = ArgumentCaptor.forClass(HabitLog.class);
+        verify(habitLogRepository).saveAndFlush(captor.capture());
+        assertEquals(15, captor.getValue().getPointsAwarded());
+    }
+
+    @Test
+    void completeHabit_duplicateCompletionDoesNotInsertSecondAward() {
+        Habit habit = activeHabit(12L);
+        habit.setPoints(20);
+        HabitLog existing = new HabitLog();
+        existing.setId(55L);
+        existing.setUuid(UUID.randomUUID());
+        existing.setHabitId(12L);
+        existing.setLoggedAt(LocalDateTime.now());
+        existing.setCompletionStatus("completed");
+        existing.setValue(BigDecimal.ONE);
+        existing.setPointsAwarded(20);
+
+        when(habitRepository.findByIdAndUserId(12L, 1L)).thenReturn(Optional.of(habit));
+        when(habitLogRepository.findTopByHabitIdAndLoggedAtBetweenOrderByLoggedAtDescIdDesc(
+                eq(12L), any(), any())).thenReturn(Optional.of(existing));
+
+        var response = habitLogService.completeHabit(new CompleteHabitRequest(12L, BigDecimal.ONE, null));
+
+        assertEquals(20, response.pointsAwarded());
+        verify(habitLogRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void markIncomplete_awardsZeroPoints() {
+        Habit habit = activeHabit(13L);
+        habit.setPoints(10);
+        when(habitRepository.findByIdAndUserId(13L, 1L)).thenReturn(Optional.of(habit));
+        when(habitLogRepository.findTopByHabitIdAndLoggedAtBetweenOrderByLoggedAtDescIdDesc(
+                eq(13L), any(), any())).thenReturn(Optional.empty());
+        when(habitLogRepository.saveAndFlush(any(HabitLog.class))).thenAnswer(invocation -> {
+            HabitLog log = invocation.getArgument(0);
+            log.setId(201L);
+            return log;
+        });
+
+        var response = habitLogService.markTodayIncomplete(13L);
+
+        assertEquals(0, response.pointsAwarded());
+        ArgumentCaptor<HabitLog> captor = ArgumentCaptor.forClass(HabitLog.class);
+        verify(habitLogRepository).saveAndFlush(captor.capture());
+        assertEquals(0, captor.getValue().getPointsAwarded());
+        assertEquals("skipped", captor.getValue().getCompletionStatus());
+    }
+
+    @Test
+    void historicalAwardRemainsWhenHabitPointsEditedLater() {
+        Habit habit = activeHabit(14L);
+        habit.setPoints(25); // edited later
+        HabitLog historical = new HabitLog();
+        historical.setId(77L);
+        historical.setUuid(UUID.randomUUID());
+        historical.setHabitId(14L);
+        historical.setLoggedAt(LocalDateTime.now());
+        historical.setCompletionStatus("completed");
+        historical.setValue(BigDecimal.ONE);
+        historical.setPointsAwarded(10); // original award
+
+        when(habitRepository.findByIdAndUserId(14L, 1L)).thenReturn(Optional.of(habit));
+        when(habitLogRepository.findTopByHabitIdAndLoggedAtBetweenOrderByLoggedAtDescIdDesc(
+                eq(14L), any(), any())).thenReturn(Optional.of(historical));
+
+        var response = habitLogService.completeHabit(new CompleteHabitRequest(14L, BigDecimal.ONE, null));
+
+        assertEquals(10, response.pointsAwarded());
+        assertEquals(25, response.habitPoints());
+        verify(habitLogRepository, never()).saveAndFlush(any());
+    }
+
     private Habit activeHabit(Long id) {
         Habit habit = new Habit();
         habit.setId(id);
@@ -118,6 +209,7 @@ class HabitLogServiceImplTest {
         habit.setDisplayOrder(0);
         habit.setActive(true);
         habit.setFrequency(HabitFrequency.DAILY);
+        habit.setPoints(0);
         habit.setCreatedAt(LocalDateTime.now());
         habit.setUpdatedAt(LocalDateTime.now());
         return habit;

@@ -8,6 +8,7 @@ class ReminderNotificationHelper {
   const ReminderNotificationHelper._();
 
   static Future<void> scheduleIfEnabled({
+    required int userId,
     required ReminderEntityType entityType,
     required int entityId,
     required String title,
@@ -15,7 +16,7 @@ class ReminderNotificationHelper {
     required int minute,
     required bool notificationsEnabled,
   }) async {
-    await cancel(entityType: entityType, entityId: entityId);
+    await cancel(userId: userId, entityType: entityType, entityId: entityId);
 
     if (!notificationsEnabled) return;
 
@@ -27,6 +28,7 @@ class ReminderNotificationHelper {
         );
       case ReminderEntityType.learning:
         await service.scheduleLearningReminder(
+          userId: userId,
           sessionId: entityId,
           title: title,
           hour: hour,
@@ -36,15 +38,16 @@ class ReminderNotificationHelper {
   }
 
   static Future<void> cancel({
+    required int userId,
     required ReminderEntityType entityType,
     required int entityId,
   }) async {
     final service = NotificationService();
     switch (entityType) {
       case ReminderEntityType.habit:
-        await service.cancelHabitReminder(entityId);
+        await service.cancelHabitReminder(userId: userId, habitId: entityId);
       case ReminderEntityType.learning:
-        await service.cancelLearningReminder(entityId);
+        await service.cancelLearningReminder(userId: userId, sessionId: entityId);
     }
   }
 

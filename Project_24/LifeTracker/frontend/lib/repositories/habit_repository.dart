@@ -183,6 +183,7 @@ class HabitRepository {
       colorHex: payload['colorHex'] as String?,
       isActive: true,
       habitCategoryId: _toInt(payload['habitCategoryId']),
+      points: _toInt(payload['points']) ?? 0,
     );
   }
 
@@ -207,6 +208,7 @@ class HabitRepository {
       colorHex: payload['colorHex'] as String? ?? habit.colorHex,
       isActive: habit.isActive,
       habitCategoryId: _toInt(payload['habitCategoryId']) ?? habit.habitCategoryId,
+      points: _toInt(payload['points']) ?? habit.points,
     );
   }
 

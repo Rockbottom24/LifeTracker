@@ -101,6 +101,13 @@ class _TodayHabitTile extends StatelessWidget {
                     if (habit.reminderLabel != null)
                       _MiniChip(icon: Icons.schedule, label: habit.reminderLabel!),
                     _MiniChip(icon: Icons.repeat, label: habit.frequencyLabel),
+                    if (habit.points > 0)
+                      _MiniChip(
+                        icon: Icons.stars_outlined,
+                        label: habit.completed && habit.pointsAwarded > 0
+                            ? '+${habit.pointsAwarded} pts'
+                            : '+${habit.points} pts',
+                      ),
                     _MiniChip(
                       icon: habit.completed ? Icons.check_circle : Icons.radio_button_unchecked,
                       label: habit.completed ? 'Completed' : 'Pending',
@@ -113,7 +120,11 @@ class _TodayHabitTile extends StatelessWidget {
           FilledButton.tonalIcon(
             onPressed: habit.completed ? onUndo : onComplete,
             icon: Icon(habit.completed ? Icons.undo : Icons.check),
-            label: Text(habit.completed ? 'Undo' : 'Done'),
+            label: Text(
+              habit.completed
+                  ? 'Undo'
+                  : (habit.points > 0 ? 'Done (+${habit.points})' : 'Done'),
+            ),
           ),
         ],
       ),

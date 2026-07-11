@@ -128,6 +128,7 @@ class OfflineDataStore {
           colorHex: item.habit.colorHex,
           isActive: item.habit.isActive,
           habitCategoryId: item.habit.habitCategoryId,
+          points: item.habit.points,
         ),
       );
     }).toList();

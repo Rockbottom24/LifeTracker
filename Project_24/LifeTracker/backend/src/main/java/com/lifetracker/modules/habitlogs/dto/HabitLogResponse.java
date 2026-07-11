@@ -19,6 +19,8 @@ public record HabitLogResponse(
         String completionStatus,
         boolean completed,
         BigDecimal value,
-        String notes
+        String notes,
+        int habitPoints,
+        int pointsAwarded
 ) {
 }

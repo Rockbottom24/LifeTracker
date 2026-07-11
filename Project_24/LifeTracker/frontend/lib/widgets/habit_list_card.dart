@@ -56,6 +56,13 @@ class HabitListCard extends StatelessWidget {
                 backgroundColor: theme.colorScheme.secondaryContainer,
                 foregroundColor: theme.colorScheme.onSecondaryContainer,
               ),
+              if (habit.points > 0)
+                AppChip(
+                  icon: Icons.stars_outlined,
+                  label: '+${habit.points} pts',
+                  backgroundColor: theme.colorScheme.primaryContainer,
+                  foregroundColor: theme.colorScheme.onPrimaryContainer,
+                ),
               if (habit.formattedReminderTime != null)
                 AppChip(
                   icon: Icons.schedule_outlined,
@@ -89,7 +96,11 @@ class HabitListCard extends StatelessWidget {
               ),
               onPressed: completed ? onUndo : onComplete,
               icon: Icon(completed ? Icons.undo : Icons.check_circle_outline),
-              label: Text(completed ? 'Undo' : 'Complete'),
+              label: Text(
+                completed
+                    ? 'Undo'
+                    : (habit.points > 0 ? 'Complete (+${habit.points} pts)' : 'Complete'),
+              ),
             ),
           ),
         ],

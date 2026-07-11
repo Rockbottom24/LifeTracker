@@ -43,12 +43,14 @@ class FoodService {
   }
 
   Future<FoodResponse> createFoodFromScannedFood(ScannedFood scannedFood) async {
+    // OFF macros are per-100g; keep GRAM / 100 reference while persisting
+    // household and piece conversion metadata from the scan payload.
     return createFood(
       CreateFoodRequest(
         name: scannedFood.name,
         category: FoodCategory.other,
         servingUnit: ServingUnit.gram,
-        referenceQuantity: 1,
+        referenceQuantity: 100,
         referenceWeight: 100,
         calories: scannedFood.calories,
         protein: scannedFood.protein,
@@ -59,6 +61,10 @@ class FoodService {
         brand: scannedFood.brand,
         imageUrl: scannedFood.imageUrl,
         source: scannedFood.source.isNotEmpty ? scannedFood.source : 'OPEN_FOOD_FACTS',
+        gramsPerPiece: scannedFood.gramsPerPiece,
+        householdUnit: scannedFood.householdUnit,
+        householdQuantity: scannedFood.householdQuantity,
+        householdGrams: scannedFood.householdGrams,
       ),
     );
   }

@@ -7,6 +7,7 @@ class HabitNotificationHelper {
   const HabitNotificationHelper._();
 
   static Future<void> scheduleIfEnabled({
+    required int userId,
     required int habitId,
     required String name,
     String? description,
@@ -16,11 +17,12 @@ class HabitNotificationHelper {
     required HabitFrequency frequency,
     DateTime? anchorDate,
   }) async {
-    await cancelForHabit(habitId);
+    await cancelForHabit(userId: userId, habitId: habitId);
 
     if (!notificationsEnabled) return;
 
     await NotificationService().scheduleHabitReminder(
+      userId: userId,
       habitId: habitId,
       name: name,
       description: description,
@@ -31,8 +33,8 @@ class HabitNotificationHelper {
     );
   }
 
-  static Future<void> cancelForHabit(int habitId) {
-    return NotificationService().cancelHabitReminder(habitId);
+  static Future<void> cancelForHabit({required int userId, required int habitId}) {
+    return NotificationService().cancelHabitReminder(userId: userId, habitId: habitId);
   }
 
   static bool reminderChanged({

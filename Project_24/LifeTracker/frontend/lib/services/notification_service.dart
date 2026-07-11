@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -24,11 +27,17 @@ class NotificationService {
   static const String _learningChannelName = 'Learning Reminders';
   static const String _learningChannelDescription = 'Reminders for learning sessions.';
 
+  static const int _habitNamespace = 1;
+  static const int _learningNamespace = 2;
+  static const int _dailyNamespace = 3;
+
   bool _initialized = false;
+  SharedPreferences? _prefs;
 
   Future<void> initialize() async {
     if (_initialized) return;
 
+    _prefs ??= await SharedPreferences.getInstance();
     await _configureLocalTimeZone();
 
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -114,10 +123,6 @@ class NotificationService {
       AppLogger.debug(
         'Android notification permission: $notificationGranted, exact alarms: $exactAlarmGranted',
       );
-
-      if (notificationGranted != true) {
-        AppLogger.debug('POST_NOTIFICATIONS permission was not granted.');
-      }
     }
 
     final iosPlugin =
@@ -150,27 +155,57 @@ class NotificationService {
     return true;
   }
 
-  Future<void> showTestNotification() async {
+  /// Deterministic, collision-safe notification ID scoped to a user.
+  int notificationIdFor({
+    required int userId,
+    required int namespace,
+    required int entityId,
+  }) {
+    final mixed = Object.hash(userId, namespace, entityId);
+    return mixed & 0x7fffffff;
+  }
+
+  int habitNotificationId({required int userId, required int habitId}) =>
+      notificationIdFor(userId: userId, namespace: _habitNamespace, entityId: habitId);
+
+  int learningNotificationId({required int userId, required int sessionId}) =>
+      notificationIdFor(userId: userId, namespace: _learningNamespace, entityId: sessionId);
+
+  int dailyReminderNotificationId({required int userId}) =>
+      notificationIdFor(userId: userId, namespace: _dailyNamespace, entityId: 1);
+
+  String _payloadFor({required int userId, required String kind, required int entityId}) {
+    return jsonEncode({
+      'userId': userId,
+      'kind': kind,
+      'entityId': entityId,
+    });
+  }
+
+  Future<void> showTestNotification({required int userId}) async {
     await initialize();
+    final id = notificationIdFor(userId: userId, namespace: _dailyNamespace, entityId: 0);
     await _localNotifications.show(
-      0,
+      id,
       HabitReminderSchedule.habitNotificationTitle,
       'Track your habits and stay consistent today.',
       await _habitNotificationDetails(),
+      payload: _payloadFor(userId: userId, kind: 'test', entityId: 0),
     );
   }
 
-  int habitNotificationId(int habitId) => habitId;
-
-  Future<void> cancelHabitReminder(int habitId) async {
+  Future<void> cancelHabitReminder({required int userId, required int habitId}) async {
     await initialize();
-    final notificationId = habitNotificationId(habitId);
+    final notificationId = habitNotificationId(userId: userId, habitId: habitId);
     await _localNotifications.cancel(notificationId);
-    AppLogger.debug('Cancelled habit notification (habitId: $habitId, notificationId: $notificationId)');
-    await _logPendingNotifications();
+    await _unregisterId(userId, notificationId);
+    // Also cancel legacy non-user-scoped IDs from older builds.
+    await _localNotifications.cancel(habitId);
+    AppLogger.debug('Cancelled habit notification (userId: $userId, habitId: $habitId, notificationId: $notificationId)');
   }
 
   Future<void> scheduleHabitReminder({
+    required int userId,
     required int habitId,
     required String name,
     String? description,
@@ -183,11 +218,10 @@ class NotificationService {
 
     final permissionsGranted = await arePermissionsGranted();
     if (!permissionsGranted) {
-      AppLogger.debug('Notification permissions missing. Requesting before scheduling habit $habitId.');
       await requestPermissions();
     }
 
-    final notificationId = habitNotificationId(habitId);
+    final notificationId = habitNotificationId(userId: userId, habitId: habitId);
     final scheduled = HabitReminderSchedule.firstFireTime(
       frequency: frequency,
       hour: hour,
@@ -197,15 +231,8 @@ class NotificationService {
     final body = HabitReminderSchedule.notificationBody(name: name, description: description);
     final repeatComponents = HabitReminderSchedule.repeatComponents(frequency);
 
-    AppLogger.debug('Scheduling notification:');
-    AppLogger.debug('  Habit ID: $habitId');
-    AppLogger.debug('  Habit Name: $name');
-    AppLogger.debug('  Reminder Time: ${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}');
-    AppLogger.debug('  Frequency: ${frequency.apiValue}');
-    AppLogger.debug('  Scheduled DateTime: $scheduled (${tz.local.name})');
-    AppLogger.debug('  Notification ID: $notificationId');
-
     try {
+      await _localNotifications.cancel(notificationId);
       await _localNotifications.zonedSchedule(
         notificationId,
         HabitReminderSchedule.habitNotificationTitle,
@@ -214,7 +241,9 @@ class NotificationService {
         await _habitNotificationDetails(),
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         matchDateTimeComponents: repeatComponents,
+        payload: _payloadFor(userId: userId, kind: 'habit', entityId: habitId),
       );
+      await _registerId(userId, notificationId);
     } catch (error, stackTrace) {
       AppLogger.debug('Failed to schedule habit notification for habitId=$habitId: $error');
       AppLogger.debug('$stackTrace');
@@ -225,6 +254,7 @@ class NotificationService {
   }
 
   Future<void> scheduleLearningReminder({
+    required int userId,
     required int sessionId,
     required String title,
     required int hour,
@@ -238,23 +268,37 @@ class NotificationService {
       scheduled = scheduled.add(const Duration(days: 1));
     }
 
+    final notificationId = learningNotificationId(userId: userId, sessionId: sessionId);
+    await _localNotifications.cancel(notificationId);
+    // Cancel legacy learning IDs from older builds.
+    await _localNotifications.cancel(2000 + sessionId);
+
     await _localNotifications.zonedSchedule(
-      2000 + sessionId,
+      notificationId,
       'Learning reminder',
       'Time to learn "$title".',
       scheduled,
       await _learningNotificationDetails(),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       matchDateTimeComponents: DateTimeComponents.time,
+      payload: _payloadFor(userId: userId, kind: 'learning', entityId: sessionId),
     );
+    await _registerId(userId, notificationId);
   }
 
-  Future<void> cancelLearningReminder(int sessionId) async {
+  Future<void> cancelLearningReminder({required int userId, required int sessionId}) async {
     await initialize();
+    final notificationId = learningNotificationId(userId: userId, sessionId: sessionId);
+    await _localNotifications.cancel(notificationId);
     await _localNotifications.cancel(2000 + sessionId);
+    await _unregisterId(userId, notificationId);
   }
 
-  Future<void> scheduleDailyReminder({int hour = 8, int minute = 0}) async {
+  Future<void> scheduleDailyReminder({
+    required int userId,
+    int hour = 8,
+    int minute = 0,
+  }) async {
     await initialize();
 
     final now = tz.TZDateTime.now(tz.local);
@@ -263,21 +307,88 @@ class NotificationService {
       scheduled = scheduled.add(const Duration(days: 1));
     }
 
+    final notificationId = dailyReminderNotificationId(userId: userId);
+    await _localNotifications.cancel(notificationId);
+    await _localNotifications.cancel(1); // legacy fixed id
+
     await _localNotifications.zonedSchedule(
-      1,
+      notificationId,
       'Daily habits reminder',
       'Open LifeTracker and check your progress.',
       scheduled,
       await _habitNotificationDetails(),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       matchDateTimeComponents: DateTimeComponents.time,
+      payload: _payloadFor(userId: userId, kind: 'daily', entityId: 1),
     );
+    await _registerId(userId, notificationId);
+  }
+
+  /// Cancels all scheduled notifications owned by [userId], then clears that user's registry.
+  /// Also cancels any leftover legacy device-global schedules that cannot be attributed.
+  Future<void> cancelNotificationsForUser(int userId) async {
+    await initialize();
+    final ids = await _registeredIds(userId);
+    for (final id in ids) {
+      await _localNotifications.cancel(id);
+    }
+    await _clearRegistry(userId);
+
+    // Legacy schedules (pre-ownership) are device-global and unsafe after logout.
+    await _localNotifications.cancelAll();
+    await _logPendingNotifications();
   }
 
   Future<void> cancelAllNotifications() async {
     await initialize();
     await _localNotifications.cancelAll();
+    final prefs = await _preferences();
+    final keys = prefs.getKeys().where((key) => key.startsWith('notification_ids_user_')).toList();
+    for (final key in keys) {
+      await prefs.remove(key);
+    }
     await _logPendingNotifications();
+  }
+
+  Future<void> _registerId(int userId, int notificationId) async {
+    final prefs = await _preferences();
+    final ids = await _registeredIds(userId);
+    if (!ids.contains(notificationId)) {
+      ids.add(notificationId);
+      await prefs.setString(_registryKey(userId), jsonEncode(ids));
+    }
+  }
+
+  Future<void> _unregisterId(int userId, int notificationId) async {
+    final prefs = await _preferences();
+    final ids = await _registeredIds(userId);
+    ids.remove(notificationId);
+    await prefs.setString(_registryKey(userId), jsonEncode(ids));
+  }
+
+  Future<List<int>> _registeredIds(int userId) async {
+    final prefs = await _preferences();
+    final raw = prefs.getString(_registryKey(userId));
+    if (raw == null || raw.isEmpty) return <int>[];
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is List) {
+        return decoded.map((item) => int.tryParse(item.toString()) ?? -1).where((id) => id >= 0).toList();
+      }
+    } catch (_) {}
+    return <int>[];
+  }
+
+  Future<void> _clearRegistry(int userId) async {
+    final prefs = await _preferences();
+    await prefs.remove(_registryKey(userId));
+  }
+
+  String _registryKey(int userId) => 'notification_ids_user_$userId';
+
+  Future<SharedPreferences> _preferences() async {
+    _prefs ??= await SharedPreferences.getInstance();
+    return _prefs!;
   }
 
   Future<void> _logPendingNotifications() async {
@@ -332,7 +443,16 @@ class NotificationService {
     );
   }
 
-  void _onNotificationResponse(NotificationResponse response) {}
+  void _onNotificationResponse(NotificationResponse response) {
+    final payload = response.payload;
+    if (payload == null || payload.isEmpty) return;
+    try {
+      final decoded = jsonDecode(payload);
+      if (decoded is Map && decoded['userId'] != null) {
+        AppLogger.debug('Notification tapped for userId=${decoded['userId']} kind=${decoded['kind']}');
+      }
+    } catch (_) {}
+  }
 
   static void _onBackgroundNotificationResponse(NotificationResponse response) {}
 }

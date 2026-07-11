@@ -7,6 +7,7 @@ import '../models/habit_category_response.dart';
 import '../models/habit_frequency.dart';
 import '../models/habit_response.dart';
 import '../models/update_habit_request.dart';
+import '../providers/auth_provider.dart';
 import '../providers/habit_provider.dart';
 import '../theme/app_spacing.dart';
 import '../utils/habit_notification_helper.dart';
@@ -33,6 +34,7 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _pointsController = TextEditingController(text: '10');
   final _nameFocusNode = FocusNode();
   final _descriptionFocusNode = FocusNode();
   final _scrollController = ScrollController();
@@ -69,6 +71,7 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
 
     _nameController.text = habit.name;
     _descriptionController.text = habit.description ?? '';
+    _pointsController.text = habit.points.toString();
     _selectedFrequency = HabitFrequency.fromApiValue(habit.frequency);
     _notificationsEnabled = habit.notificationsEnabled;
     _pendingCategoryId = habit.habitCategoryId;
@@ -110,6 +113,7 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
   void dispose() {
     _nameController.dispose();
     _descriptionController.dispose();
+    _pointsController.dispose();
     _nameFocusNode.dispose();
     _descriptionFocusNode.dispose();
     _scrollController.dispose();
@@ -164,6 +168,7 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
       notificationsEnabled: _notificationsEnabled,
       iconName: _selectedIcon,
       colorHex: _selectedColor,
+      points: int.tryParse(_pointsController.text.trim()) ?? 0,
     );
 
     final habit = await provider.createHabit(request);
@@ -175,7 +180,11 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
       return;
     }
 
+    final userId = context.read<AuthProvider>().userId;
+    if (userId == null) return;
+
     await HabitNotificationHelper.scheduleIfEnabled(
+      userId: userId,
       habitId: habit.id,
       name: habit.name,
       description: habit.description ?? _descriptionController.text.trim(),
@@ -206,6 +215,7 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
       notificationsEnabled: _notificationsEnabled,
       iconName: _selectedIcon,
       colorHex: _selectedColor,
+      points: int.tryParse(_pointsController.text.trim()) ?? 0,
     );
 
     final success = await provider.updateHabit(habit.id, request);
@@ -217,7 +227,11 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
       return;
     }
 
+    final userId = context.read<AuthProvider>().userId;
+    if (userId == null) return;
+
     await HabitNotificationHelper.scheduleIfEnabled(
+      userId: userId,
       habitId: habit.id,
       name: _nameController.text.trim(),
       description: _descriptionController.text.trim(),
@@ -294,6 +308,7 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
         AddHabitFormContent(
           nameController: _nameController,
           descriptionController: _descriptionController,
+          pointsController: _pointsController,
           nameFocusNode: _nameFocusNode,
           descriptionFocusNode: _descriptionFocusNode,
           autofocusName: !_isEditMode,

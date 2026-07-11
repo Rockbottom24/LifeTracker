@@ -1,11 +1,14 @@
 enum ServingUnit {
   gram('GRAM', 'Gram'),
+  kilogram('KILOGRAM', 'Kilogram'),
   ml('ML', 'Milliliter'),
+  liter('LITER', 'Liter'),
   piece('PIECE', 'Piece'),
   tablespoon('TABLESPOON', 'Tablespoon'),
   teaspoon('TEASPOON', 'Teaspoon'),
   cup('CUP', 'Cup'),
-  scoop('SCOOP', 'Scoop');
+  scoop('SCOOP', 'Scoop'),
+  serving('SERVING', 'Serving');
 
   const ServingUnit(this.apiValue, this.label);
 
@@ -17,5 +20,13 @@ enum ServingUnit {
       (item) => item.apiValue == value,
       orElse: () => ServingUnit.gram,
     );
+  }
+
+  static ServingUnit? tryFromApiValue(String? value) {
+    if (value == null || value.isEmpty) return null;
+    for (final item in ServingUnit.values) {
+      if (item.apiValue == value) return item;
+    }
+    return null;
   }
 }

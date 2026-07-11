@@ -20,6 +20,9 @@ class ExpenseFormOptions {
     'Entertainment',
     'Dining',
     'Shopping',
+    'Gym',
+    'Chicken',
+    'Eggs',
     'Other',
   ];
 }

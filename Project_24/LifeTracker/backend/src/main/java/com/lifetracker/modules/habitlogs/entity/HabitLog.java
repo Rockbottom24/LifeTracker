@@ -45,6 +45,9 @@ public class HabitLog {
     @Column(name = "is_active", nullable = false)
     private boolean active;
 
+    @Column(name = "points_awarded", nullable = false)
+    private int pointsAwarded = 0;
+
     public HabitLog() {
     }
 
@@ -126,5 +129,13 @@ public class HabitLog {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public int getPointsAwarded() {
+        return pointsAwarded;
+    }
+
+    public void setPointsAwarded(int pointsAwarded) {
+        this.pointsAwarded = Math.max(0, pointsAwarded);
     }
 }

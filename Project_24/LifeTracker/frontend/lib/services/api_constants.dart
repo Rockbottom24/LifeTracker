@@ -3,15 +3,17 @@ import 'package:flutter/foundation.dart';
 class ApiConstants {
   static String get defaultAbsoluteBaseUrl => String.fromEnvironment(
         'API_BASE_URL',
-        defaultValue: 'http://192.168.29.63:8080/api/v1',
+        defaultValue: 'http://35.154.115.14/api/v1',
       );
 
   static String get defaultBaseUrl => kIsWeb ? '/api/v1' : defaultAbsoluteBaseUrl;
   static const String baseUrlKey = 'api_base_url';
   static const String accessTokenKey = 'access_token';
+  static const String refreshTokenKey = 'refresh_token';
   static const String userIdKey = 'user_id';
   static const String userEmailKey = 'user_email';
   static const String userDisplayNameKey = 'user_display_name';
+  static const String userHouseKey = 'user_house_key';
   static const Duration connectTimeout = Duration(seconds: 10);
   static const Duration receiveTimeout = Duration(seconds: 15);
 

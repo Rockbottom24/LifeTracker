@@ -74,6 +74,9 @@ public class Habit {
     @Column(name = "color_hex", length = 20)
     private String colorHex;
 
+    @Column(name = "points", nullable = false)
+    private int points = 0;
+
     public void setFrequency(HabitFrequency frequency) {
         this.frequency = frequency;
     }
@@ -112,6 +115,14 @@ public class Habit {
 
     public String getColorHex() {
         return colorHex;
+    }
+
+    public int getPoints() {
+        return points;
+    }
+
+    public void setPoints(int points) {
+        this.points = Math.max(0, points);
     }
 
     public Habit() {

@@ -8,6 +8,11 @@ class DashboardViewData {
   const DashboardViewData({
     required this.greeting,
     required this.userName,
+    required this.firstName,
+    required this.houseDisplayName,
+    required this.welcomeTitle,
+    required this.welcomeSubtitle,
+    required this.dayStatusMessage,
     required this.currentDate,
     required this.currentStreak,
     required this.motivationalMessage,
@@ -19,6 +24,11 @@ class DashboardViewData {
 
   final String greeting;
   final String userName;
+  final String firstName;
+  final String houseDisplayName;
+  final String welcomeTitle;
+  final String welcomeSubtitle;
+  final String dayStatusMessage;
   final DateTime currentDate;
   final int currentStreak;
   final String motivationalMessage;
@@ -37,6 +47,8 @@ class TodayHabitViewItem {
     required this.completed,
     required this.frequencyLabel,
     this.reminderLabel,
+    this.points = 0,
+    this.pointsAwarded = 0,
   });
 
   final int habitId;
@@ -46,6 +58,8 @@ class TodayHabitViewItem {
   final bool completed;
   final String frequencyLabel;
   final String? reminderLabel;
+  final int points;
+  final int pointsAwarded;
 }
 
 class UpcomingReminder {
@@ -81,10 +95,27 @@ class DashboardViewDataMapper {
     final currentDate = response.currentDate ?? DateTime.now();
     final todayItems = _mapTodayHabits(response.todayHabits ?? [], habits);
     final mergedSummary = _mergeSummary(summary, habits, todayItems);
+    final firstName = response.firstName?.trim().isNotEmpty == true
+        ? response.firstName!.trim()
+        : (response.userName ?? 'Traveler');
+    final houseDisplayName = response.houseDisplayName?.trim().isNotEmpty == true
+        ? response.houseDisplayName!.trim()
+        : 'Stark';
 
     return DashboardViewData(
       greeting: response.greeting ?? _defaultGreeting(),
       userName: response.userName ?? 'there',
+      firstName: firstName,
+      houseDisplayName: houseDisplayName,
+      welcomeTitle: response.welcomeTitle?.trim().isNotEmpty == true
+          ? response.welcomeTitle!.trim()
+          : 'Welcome, $firstName',
+      welcomeSubtitle: response.welcomeSubtitle?.trim().isNotEmpty == true
+          ? response.welcomeSubtitle!.trim()
+          : 'of House $houseDisplayName',
+      dayStatusMessage: response.dayStatusMessage?.trim().isNotEmpty == true
+          ? response.dayStatusMessage!.trim()
+          : _motivationalMessage(mergedSummary),
       currentDate: currentDate,
       currentStreak: mergedSummary.currentStreak,
       motivationalMessage: _motivationalMessage(mergedSummary),
@@ -106,6 +137,11 @@ class DashboardViewDataMapper {
     final completed = todayItems.where((item) => item.completed).length;
     final pending = (total - completed).clamp(0, total);
     final completionPercentage = total == 0 ? 0.0 : (completed / total) * 100;
+    final possiblePoints = habits.fold<int>(0, (sum, habit) => sum + habit.points);
+    final earnedPoints = todayItems.fold<int>(
+      0,
+      (sum, item) => sum + (item.completed ? (item.pointsAwarded > 0 ? item.pointsAwarded : item.points) : 0),
+    );
 
     return DashboardSummary(
       totalHabits: total,
@@ -114,6 +150,8 @@ class DashboardViewDataMapper {
       completionPercentage: completionPercentage,
       currentStreak: summary.currentStreak,
       longestStreak: summary.longestStreak,
+      earnedPoints: summary.earnedPoints > 0 ? summary.earnedPoints : earnedPoints,
+      possiblePoints: summary.possiblePoints > 0 ? summary.possiblePoints : possiblePoints,
     );
   }
 
@@ -133,6 +171,7 @@ class DashboardViewDataMapper {
               completed: false,
               frequencyLabel: habit.frequencyLabel,
               reminderLabel: habit.formattedReminderTime,
+              points: habit.points,
             ),
           )
           .toList();
@@ -157,6 +196,8 @@ class DashboardViewDataMapper {
         completed: item.completed,
         frequencyLabel: habit?.frequencyLabel ?? 'Daily',
         reminderLabel: habit?.formattedReminderTime,
+        points: item.points > 0 ? item.points : (habit?.points ?? 0),
+        pointsAwarded: item.pointsAwarded,
       );
     }).where((item) => item.habitId != 0).toList();
   }

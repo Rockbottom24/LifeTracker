@@ -17,6 +17,10 @@ class CreateFoodRequest {
     this.brand,
     this.imageUrl,
     this.source,
+    this.gramsPerPiece,
+    this.householdUnit,
+    this.householdQuantity,
+    this.householdGrams,
   });
 
   final String name;
@@ -33,9 +37,13 @@ class CreateFoodRequest {
   final String? brand;
   final String? imageUrl;
   final String? source;
+  final double? gramsPerPiece;
+  final ServingUnit? householdUnit;
+  final double? householdQuantity;
+  final double? householdGrams;
 
   Map<String, dynamic> toJson() {
-    final payload = {
+    final payload = <String, dynamic>{
       'name': name,
       'category': category.apiValue,
       'servingUnit': servingUnit.apiValue,
@@ -58,6 +66,18 @@ class CreateFoodRequest {
     }
     if (source != null && source!.trim().isNotEmpty) {
       payload['source'] = source!.trim();
+    }
+    if (gramsPerPiece != null) {
+      payload['gramsPerPiece'] = gramsPerPiece;
+    }
+    if (householdUnit != null) {
+      payload['householdUnit'] = householdUnit!.apiValue;
+    }
+    if (householdQuantity != null) {
+      payload['householdQuantity'] = householdQuantity;
+    }
+    if (householdGrams != null) {
+      payload['householdGrams'] = householdGrams;
     }
     return payload;
   }

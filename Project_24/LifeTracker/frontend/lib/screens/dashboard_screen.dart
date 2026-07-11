@@ -12,6 +12,7 @@ import '../theme/app_spacing.dart';
 import '../theme/house_theme.dart';
 import '../utils/dashboard_view_data_mapper.dart';
 import '../widgets/offline_sync_banner.dart';
+import '../widgets/chronicle_card.dart';
 import '../widgets/dashboard/dashboard_hero_card.dart';
 import '../widgets/dashboard/dashboard_skeleton.dart';
 import '../widgets/dashboard/progress_ring_card.dart';
@@ -69,6 +70,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  void _openProfile() {
+    AppNavigator.openProfile(context);
+  }
+
   void _openLearningDetails(int sessionId) {
     AppNavigator.openLearningDetails(context, sessionId);
   }
@@ -93,6 +98,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
           IconButton(
             onPressed: dashboardProvider.isLoading ? null : _refresh,
             icon: const Icon(Icons.refresh_outlined),
+          ),
+          IconButton(
+            tooltip: 'Profile',
+            onPressed: _openProfile,
+            icon: const Icon(Icons.person_outline),
           ),
           IconButton(
             tooltip: 'Logout',
@@ -145,11 +155,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       habits: habitProvider.habits,
     );
     final house = auth.house;
-    final experience = (viewData.summary.completedHabits * 120) +
-        (viewData.summary.totalHabits * 35) +
-        (viewData.summary.currentStreak * 45);
-    final level = (experience ~/ 500) + 1;
-    final rank = _rankForLevel(level);
 
     if (viewData.summary.totalHabits == 0 &&
         habitProvider.habits.isEmpty &&
@@ -158,10 +163,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(AppSpacing.lg),
         children: [
-          EmptyState(
-            icon: Icons.auto_graph_rounded,
-            title: 'Welcome to LifeTracker',
-            message: 'Create your first habit to begin building your streak.',
+          ChronicleEmptyState(
+            house: house,
+            title: viewData.welcomeTitle,
+            message:
+                '${viewData.welcomeSubtitle}\n\n${viewData.dayStatusMessage}\n\nBegin your first quest to write today\'s chronicle.',
             actionLabel: 'Create Habit',
             onAction: _openCreateHabit,
           ),
@@ -184,8 +190,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         ResponsiveFormContainer(
           child: isTablet
-              ? _buildTabletLayout(viewData, learningProvider, auth, house, experience, level, rank)
-              : _buildPhoneLayout(viewData, learningProvider, auth, house, experience, level, rank),
+              ? _buildTabletLayout(viewData, learningProvider, house)
+              : _buildPhoneLayout(viewData, learningProvider, house),
         ),
       ],
     );
@@ -194,22 +200,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildPhoneLayout(
     DashboardViewData viewData,
     LearningProvider learningProvider,
-    AuthProvider auth,
     HouseTheme house,
-    int experience,
-    int level,
-    String rank,
   ) {
     return Column(
       children: [
         DashboardHeroCard(
-          profileLabel: auth.profileLabel,
+          welcomeTitle: viewData.welcomeTitle,
+          welcomeSubtitle: viewData.welcomeSubtitle,
+          dayStatusMessage: viewData.dayStatusMessage,
           house: house,
-          houseMotto: house.motto,
           currentDate: viewData.currentDate,
-          experience: experience,
-          level: level,
-          rank: rank,
+          earnedPoints: viewData.summary.earnedPoints,
+          possiblePoints: viewData.summary.possiblePoints,
+          questCount: viewData.summary.totalHabits,
+          completedQuests: viewData.summary.completedHabits,
         ),
         const SizedBox(height: AppSpacing.md),
         ProgressRingCard(summary: viewData.summary),
@@ -239,11 +243,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildTabletLayout(
     DashboardViewData viewData,
     LearningProvider learningProvider,
-    AuthProvider auth,
     HouseTheme house,
-    int experience,
-    int level,
-    String rank,
   ) {
     return Column(
       children: [
@@ -252,13 +252,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             Expanded(
               child: DashboardHeroCard(
-                profileLabel: auth.profileLabel,
+                welcomeTitle: viewData.welcomeTitle,
+                welcomeSubtitle: viewData.welcomeSubtitle,
+                dayStatusMessage: viewData.dayStatusMessage,
                 house: house,
-                houseMotto: house.motto,
                 currentDate: viewData.currentDate,
-                experience: experience,
-                level: level,
-                rank: rank,
+                earnedPoints: viewData.summary.earnedPoints,
+                possiblePoints: viewData.summary.possiblePoints,
+                questCount: viewData.summary.totalHabits,
+                completedQuests: viewData.summary.completedHabits,
               ),
             ),
             const SizedBox(width: AppSpacing.md),
@@ -291,15 +293,5 @@ class _DashboardScreenState extends State<DashboardScreen> {
         StatsGrid(summary: viewData.summary),
       ],
     );
-  }
-
-  String _rankForLevel(int level) {
-    if (level >= 20) return 'King';
-    if (level >= 16) return 'Hand of the King';
-    if (level >= 12) return 'Warden';
-    if (level >= 8) return 'Lord';
-    if (level >= 5) return 'Knight';
-    if (level >= 3) return 'Squire';
-    return 'Smallfolk';
   }
 }

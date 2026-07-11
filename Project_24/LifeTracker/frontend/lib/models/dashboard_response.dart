@@ -3,6 +3,12 @@ class DashboardResponse {
     this.currentDate,
     this.greeting,
     this.userName,
+    this.firstName,
+    this.houseKey,
+    this.houseDisplayName,
+    this.welcomeTitle,
+    this.welcomeSubtitle,
+    this.dayStatusMessage,
     this.summary,
     this.todayHabits,
   });
@@ -10,6 +16,12 @@ class DashboardResponse {
   final DateTime? currentDate;
   final String? greeting;
   final String? userName;
+  final String? firstName;
+  final String? houseKey;
+  final String? houseDisplayName;
+  final String? welcomeTitle;
+  final String? welcomeSubtitle;
+  final String? dayStatusMessage;
   final DashboardSummary? summary;
   final List<TodayHabit>? todayHabits;
 
@@ -18,6 +30,12 @@ class DashboardResponse {
       currentDate: _parseDate(json['currentDate']),
       greeting: json['greeting'] as String?,
       userName: json['userName'] as String?,
+      firstName: json['firstName'] as String?,
+      houseKey: json['houseKey'] as String?,
+      houseDisplayName: json['houseDisplayName'] as String?,
+      welcomeTitle: json['welcomeTitle'] as String?,
+      welcomeSubtitle: json['welcomeSubtitle'] as String?,
+      dayStatusMessage: json['dayStatusMessage'] as String?,
       summary: json['summary'] == null
           ? null
           : DashboardSummary.fromJson(
@@ -34,6 +52,12 @@ class DashboardResponse {
       'currentDate': currentDate?.toIso8601String(),
       'greeting': greeting,
       'userName': userName,
+      'firstName': firstName,
+      'houseKey': houseKey,
+      'houseDisplayName': houseDisplayName,
+      'welcomeTitle': welcomeTitle,
+      'welcomeSubtitle': welcomeSubtitle,
+      'dayStatusMessage': dayStatusMessage,
       'summary': summary?.toJson(),
       'todayHabits': todayHabits?.map((item) => item.toJson()).toList(),
     };
@@ -54,6 +78,8 @@ class DashboardSummary {
     this.completionPercentage = 0,
     this.currentStreak = 0,
     this.longestStreak = 0,
+    this.earnedPoints = 0,
+    this.possiblePoints = 0,
   });
 
   final int totalHabits;
@@ -62,6 +88,8 @@ class DashboardSummary {
   final double completionPercentage;
   final int currentStreak;
   final int longestStreak;
+  final int earnedPoints;
+  final int possiblePoints;
 
   factory DashboardSummary.fromJson(Map<String, dynamic> json) {
     return DashboardSummary(
@@ -71,6 +99,8 @@ class DashboardSummary {
       completionPercentage: _toDouble(json['completionPercentage']),
       currentStreak: _toInt(json['currentStreak']),
       longestStreak: _toInt(json['longestStreak']),
+      earnedPoints: _toInt(json['earnedPoints']),
+      possiblePoints: _toInt(json['possiblePoints']),
     );
   }
 
@@ -82,6 +112,8 @@ class DashboardSummary {
       'completionPercentage': completionPercentage,
       'currentStreak': currentStreak,
       'longestStreak': longestStreak,
+      'earnedPoints': earnedPoints,
+      'possiblePoints': possiblePoints,
     };
   }
 
@@ -98,6 +130,8 @@ class TodayHabit {
     this.completed = false,
     this.targetValue,
     this.currentValue,
+    this.points = 0,
+    this.pointsAwarded = 0,
   });
 
   final int? habitId;
@@ -107,6 +141,8 @@ class TodayHabit {
   final bool completed;
   final double? targetValue;
   final double? currentValue;
+  final int points;
+  final int pointsAwarded;
 
   factory TodayHabit.fromJson(Map<String, dynamic> json) {
     return TodayHabit(
@@ -117,6 +153,8 @@ class TodayHabit {
       completed: json['completed'] as bool? ?? false,
       targetValue: DashboardSummary._toDouble(json['targetValue']),
       currentValue: DashboardSummary._toDouble(json['currentValue']),
+      points: DashboardSummary._toInt(json['points']),
+      pointsAwarded: DashboardSummary._toInt(json['pointsAwarded']),
     );
   }
 
@@ -129,6 +167,8 @@ class TodayHabit {
       'completed': completed,
       'targetValue': targetValue,
       'currentValue': currentValue,
+      'points': points,
+      'pointsAwarded': pointsAwarded,
     };
   }
 }

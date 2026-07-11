@@ -34,7 +34,13 @@ class _DraftMealItem {
   final double quantity;
   final ServingUnit unit;
 
-  MealNutritionSummary get summary => MealNutritionCalculator.fromFood(food, quantity, unit);
+  MealNutritionResult get nutritionResult =>
+      MealNutritionCalculator.fromFood(food, quantity, unit);
+
+  MealNutritionSummary get summary =>
+      nutritionResult.summary ?? MealNutritionSummary.zero;
+
+  String? get conversionError => nutritionResult.error;
 }
 
 class AddMealScreen extends StatefulWidget {
@@ -130,9 +136,10 @@ class _AddMealScreenState extends State<AddMealScreen> {
   }
 
   void _selectFood(FoodResponse food) {
+    final units = food.effectiveSupportedUnits;
     setState(() {
       _selectedFood = food;
-      _selectedUnit = food.servingUnit;
+      _selectedUnit = units.contains(food.servingUnit) ? food.servingUnit : units.first;
       _searchController.text = food.name;
       _quantityController.text = food.referenceQuantity.toString();
     });
@@ -148,6 +155,12 @@ class _AddMealScreenState extends State<AddMealScreen> {
     final quantity = double.tryParse(_quantityController.text.trim());
     if (quantity == null || quantity <= 0) {
       SnackBarUtils.showError(context, 'Enter a valid quantity');
+      return;
+    }
+
+    final preview = MealNutritionCalculator.fromFood(_selectedFood!, quantity, _selectedUnit);
+    if (preview.hasError) {
+      SnackBarUtils.showError(context, preview.error!);
       return;
     }
 
@@ -375,13 +388,16 @@ class _AddMealScreenState extends State<AddMealScreen> {
                     label: 'Quantity',
                     hint: _selectedFood?.referenceQuantity.toString() ?? '1',
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    onChanged: (_) => setState(() {}),
                   ),
                   const SizedBox(height: AppSpacing.sectionGap),
                   AppDropdown<ServingUnit>(
                     label: 'Unit',
-                    value: _selectedUnit,
+                    value: _selectedFood!.effectiveSupportedUnits.contains(_selectedUnit)
+                        ? _selectedUnit
+                        : _selectedFood!.effectiveSupportedUnits.first,
                     items: [
-                      for (final unit in ServingUnit.values)
+                      for (final unit in _selectedFood!.effectiveSupportedUnits)
                         DropdownMenuItem<ServingUnit>(
                           value: unit,
                           child: Text(unit.label),
@@ -393,11 +409,24 @@ class _AddMealScreenState extends State<AddMealScreen> {
                   ),
                   const SizedBox(height: AppSpacing.md),
                   if (_selectedFood != null)
-                    _MacroChipRow(summary: MealNutritionCalculator.fromFood(
-                      _selectedFood!,
-                      double.tryParse(_quantityController.text.trim()) ?? 0,
-                      _selectedUnit,
-                    )),
+                    Builder(
+                      builder: (context) {
+                        final result = MealNutritionCalculator.fromFood(
+                          _selectedFood!,
+                          double.tryParse(_quantityController.text.trim()) ?? 0,
+                          _selectedUnit,
+                        );
+                        if (result.hasError) {
+                          return Text(
+                            result.error!,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.error,
+                            ),
+                          );
+                        }
+                        return _MacroChipRow(summary: result.summary!);
+                      },
+                    ),
                   const SizedBox(height: AppSpacing.md),
                   PrimaryButton(
                     label: 'Add Food to Meal',
@@ -486,7 +515,15 @@ class _DraftItemCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
-          _MacroChipRow(summary: item.summary),
+          if (item.conversionError != null)
+            Text(
+              item.conversionError!,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.error,
+              ),
+            )
+          else
+            _MacroChipRow(summary: item.summary),
         ],
       ),
     );

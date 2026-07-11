@@ -8,6 +8,12 @@ public record DashboardResponse(
         LocalDate currentDate,
         String greeting,
         String userName,
+        String firstName,
+        String houseKey,
+        String houseDisplayName,
+        String welcomeTitle,
+        String welcomeSubtitle,
+        String dayStatusMessage,
         Summary summary,
         List<TodayHabit> todayHabits
 ) {
@@ -17,7 +23,9 @@ public record DashboardResponse(
             int pendingHabits,
             BigDecimal completionPercentage,
             int currentStreak,
-            int longestStreak
+            int longestStreak,
+            int earnedPoints,
+            int possiblePoints
     ) {
     }
 
@@ -28,7 +36,9 @@ public record DashboardResponse(
             String color,
             boolean completed,
             BigDecimal targetValue,
-            BigDecimal currentValue
+            BigDecimal currentValue,
+            int points,
+            int pointsAwarded
     ) {
     }
 }

@@ -11,6 +11,7 @@ class CreateHabitRequest {
   final bool notificationsEnabled;
   final String iconName;
   final String colorHex;
+  final int points;
 
   const CreateHabitRequest({
     required this.habitCategoryId,
@@ -23,6 +24,7 @@ class CreateHabitRequest {
     required this.notificationsEnabled,
     required this.iconName,
     required this.colorHex,
+    this.points = 0,
   });
 
   Map<String, dynamic> toJson() {
@@ -37,6 +39,7 @@ class CreateHabitRequest {
       'notificationsEnabled': notificationsEnabled,
       'iconName': iconName,
       'colorHex': colorHex,
+      'points': points,
     };
   }
 

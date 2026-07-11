@@ -26,9 +26,8 @@ class ProductPreviewScreen extends StatefulWidget {
 }
 
 class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
-  final _quantityController = TextEditingController(text: '100');
-
-  ServingUnit _selectedUnit = ServingUnit.gram;
+  late final TextEditingController _quantityController;
+  late ServingUnit _selectedUnit;
   MealType _selectedMealType = MealType.snack;
   FoodResponse? _resolvedFood;
   bool _isAddingMeal = false;
@@ -37,6 +36,11 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
   @override
   void initState() {
     super.initState();
+    final units = _availableUnits;
+    _selectedUnit = units.contains(ServingUnit.gram) ? ServingUnit.gram : units.first;
+    final defaultQty = _selectedUnit == ServingUnit.gram ? '100' : '1';
+    _quantityController = TextEditingController(text: defaultQty);
+
     if (widget.product.foodId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _loadResolvedFood();
@@ -50,6 +54,12 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
     super.dispose();
   }
 
+  List<ServingUnit> get _availableUnits {
+    final resolved = _resolvedFood?.effectiveSupportedUnits;
+    if (resolved != null && resolved.isNotEmpty) return resolved;
+    return widget.product.effectiveSupportedUnits;
+  }
+
   Future<void> _loadResolvedFood() async {
     final foodId = widget.product.foodId;
     if (foodId == null || !mounted) return;
@@ -57,9 +67,14 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
     final food = await context.read<FoodProvider>().getFoodById(foodId);
     if (!mounted) return;
 
-    _resolvedFood ??= food;
     if (food != null) {
-      setState(() {});
+      setState(() {
+        _resolvedFood = food;
+        final units = food.effectiveSupportedUnits;
+        if (!units.contains(_selectedUnit)) {
+          _selectedUnit = units.contains(food.servingUnit) ? food.servingUnit : units.first;
+        }
+      });
     }
   }
 
@@ -67,7 +82,7 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
     return double.tryParse(_quantityController.text.trim()) ?? 0;
   }
 
-  MealNutritionSummary get _previewSummary {
+  MealNutritionResult get _previewResult {
     return MealNutritionCalculator.fromFood(
       _scannedFoodAsFood,
       _quantity,
@@ -81,9 +96,9 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
       uuid: _resolvedFood?.uuid ?? '',
       name: widget.product.name,
       category: _resolvedFood?.category ?? FoodCategory.other,
-      servingUnit: _resolvedFood?.servingUnit ?? ServingUnit.gram,
-      referenceQuantity: _resolvedFood?.referenceQuantity ?? 1,
-      referenceWeight: _resolvedFood?.referenceWeight ?? 100,
+      servingUnit: _resolvedFood?.servingUnit ?? widget.product.servingUnit ?? ServingUnit.gram,
+      referenceQuantity: _resolvedFood?.referenceQuantity ?? widget.product.referenceQuantity ?? 100,
+      referenceWeight: _resolvedFood?.referenceWeight ?? widget.product.referenceWeight ?? 100,
       calories: widget.product.calories,
       protein: widget.product.protein,
       carbs: widget.product.carbs,
@@ -94,6 +109,13 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
       brand: widget.product.brand,
       imageUrl: widget.product.imageUrl,
       source: widget.product.source,
+      gramsPerPiece: _resolvedFood?.gramsPerPiece ?? widget.product.gramsPerPiece,
+      householdUnit: _resolvedFood?.householdUnit ?? widget.product.householdUnit,
+      householdQuantity: _resolvedFood?.householdQuantity ?? widget.product.householdQuantity,
+      householdGrams: _resolvedFood?.householdGrams ?? widget.product.householdGrams,
+      supportedUnits: _resolvedFood?.supportedUnits.isNotEmpty == true
+          ? _resolvedFood!.supportedUnits
+          : widget.product.supportedUnits,
     );
   }
 
@@ -115,6 +137,12 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
     final quantity = _quantity;
     if (quantity <= 0) {
       _showInvalidQuantity();
+      return;
+    }
+
+    final preview = _previewResult;
+    if (preview.hasError) {
+      SnackBarUtils.showError(context, preview.error!);
       return;
     }
 
@@ -207,8 +235,10 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
   @override
   Widget build(BuildContext context) {
     final product = widget.product;
-    final summary = _previewSummary;
+    final result = _previewResult;
     final theme = Theme.of(context);
+    final units = _availableUnits;
+    final unitValue = units.contains(_selectedUnit) ? _selectedUnit : units.first;
 
     return Scaffold(
       appBar: AppBar(
@@ -310,10 +340,10 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<ServingUnit>(
-                      initialValue: _selectedUnit,
+                      initialValue: unitValue,
                       decoration: const InputDecoration(labelText: 'Serving Unit'),
                       items: [
-                        for (final unit in ServingUnit.values)
+                        for (final unit in units)
                           DropdownMenuItem(
                             value: unit,
                             child: Text(unit.label),
@@ -346,18 +376,42 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
                       style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 8),
-                    Text(
-                      'Calculated for ${MealUiUtils.formatServing(_quantity, _selectedUnit.label.toLowerCase())}.',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                    if (result.hasError)
+                      Text(
+                        result.error!,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.error,
+                        ),
+                      )
+                    else ...[
+                      Text(
+                        'Calculated for ${MealUiUtils.formatServing(_quantity, _selectedUnit.label.toLowerCase())}.',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    _NutritionRow(label: 'Calories', value: '${summary.calories.toStringAsFixed(1)} kcal'),
-                    _NutritionRow(label: 'Protein', value: '${summary.protein.toStringAsFixed(1)} g'),
-                    _NutritionRow(label: 'Carbs', value: '${summary.carbs.toStringAsFixed(1)} g'),
-                    _NutritionRow(label: 'Fat', value: '${summary.fat.toStringAsFixed(1)} g'),
-                    _NutritionRow(label: 'Fiber', value: '${summary.fiber.toStringAsFixed(1)} g'),
+                      const SizedBox(height: 12),
+                      _NutritionRow(
+                        label: 'Calories',
+                        value: '${result.summary!.calories.toStringAsFixed(1)} kcal',
+                      ),
+                      _NutritionRow(
+                        label: 'Protein',
+                        value: '${result.summary!.protein.toStringAsFixed(1)} g',
+                      ),
+                      _NutritionRow(
+                        label: 'Carbs',
+                        value: '${result.summary!.carbs.toStringAsFixed(1)} g',
+                      ),
+                      _NutritionRow(
+                        label: 'Fat',
+                        value: '${result.summary!.fat.toStringAsFixed(1)} g',
+                      ),
+                      _NutritionRow(
+                        label: 'Fiber',
+                        value: '${result.summary!.fiber.toStringAsFixed(1)} g',
+                      ),
+                    ],
                   ],
                 ),
               ),

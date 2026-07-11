@@ -20,6 +20,11 @@ class FoodResponse {
     this.brand = '',
     this.imageUrl = '',
     this.source = '',
+    this.gramsPerPiece,
+    this.householdUnit,
+    this.householdQuantity,
+    this.householdGrams,
+    this.supportedUnits = const [],
   });
 
   final int id;
@@ -39,6 +44,40 @@ class FoodResponse {
   final String brand;
   final String imageUrl;
   final String source;
+  final double? gramsPerPiece;
+  final ServingUnit? householdUnit;
+  final double? householdQuantity;
+  final double? householdGrams;
+  final List<ServingUnit> supportedUnits;
+
+  /// Units shown in meal/logging UI. Falls back when API list is empty.
+  List<ServingUnit> get effectiveSupportedUnits {
+    if (supportedUnits.isNotEmpty) return supportedUnits;
+    return [servingUnit, ServingUnit.gram];
+  }
+
+  bool get hasPieceConversion {
+    if (gramsPerPiece != null && gramsPerPiece! > 0) return true;
+    return servingUnit == ServingUnit.piece &&
+        referenceQuantity > 0 &&
+        referenceWeight > 0;
+  }
+
+  double? get resolvedGramsPerPiece {
+    if (gramsPerPiece != null && gramsPerPiece! > 0) return gramsPerPiece;
+    if (servingUnit == ServingUnit.piece && referenceQuantity > 0 && referenceWeight > 0) {
+      return referenceWeight / referenceQuantity;
+    }
+    return null;
+  }
+
+  bool get hasHouseholdConversion {
+    return householdUnit != null &&
+        householdQuantity != null &&
+        householdQuantity! > 0 &&
+        householdGrams != null &&
+        householdGrams! > 0;
+  }
 
   factory FoodResponse.fromJson(Map<String, dynamic> json) {
     return FoodResponse(
@@ -59,6 +98,11 @@ class FoodResponse {
       brand: json['brand']?.toString() ?? '',
       imageUrl: json['imageUrl']?.toString() ?? '',
       source: json['source']?.toString() ?? '',
+      gramsPerPiece: _toNullableDouble(json['gramsPerPiece']),
+      householdUnit: ServingUnit.tryFromApiValue(json['householdUnit']?.toString()),
+      householdQuantity: _toNullableDouble(json['householdQuantity']),
+      householdGrams: _toNullableDouble(json['householdGrams']),
+      supportedUnits: _parseSupportedUnits(json['supportedUnits']),
     );
   }
 
@@ -71,9 +115,25 @@ class FoodResponse {
     return 'per $referenceServingLabel';
   }
 
+  static List<ServingUnit> _parseSupportedUnits(dynamic value) {
+    if (value is! List) return const [];
+    final units = <ServingUnit>[];
+    for (final item in value) {
+      final unit = ServingUnit.tryFromApiValue(item?.toString());
+      if (unit != null) units.add(unit);
+    }
+    return units;
+  }
+
   static int? _toInt(dynamic value) {
     if (value is num) return value.toInt();
     return int.tryParse(value?.toString() ?? '');
+  }
+
+  static double? _toNullableDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is num) return value.toDouble();
+    return double.tryParse(value.toString());
   }
 
   static double _toDouble(

@@ -83,22 +83,59 @@ public class DashboardServiceImpl implements DashboardService {
         int currentStreak = calculateCurrentStreak(currentDate, totalHabits, completedHabitIdsByDate);
         int longestStreak = calculateLongestStreak(currentDate, totalHabits, completedHabitIdsByDate);
 
+        int earnedPoints = todayHabits.stream().mapToInt(DashboardResponse.TodayHabit::pointsAwarded).sum();
+        int possiblePoints = activeHabits.stream().mapToInt(Habit::getPoints).sum();
+
         DashboardResponse.Summary summary = dashboardMapper.toSummary(
                 totalHabits,
                 completedHabits,
                 pendingHabits,
                 completionPercentage,
                 currentStreak,
-                longestStreak
+                longestStreak,
+                earnedPoints,
+                possiblePoints
         );
+
+        AppUser user = currentUserService.getCurrentUser();
+        String firstName = resolveFirstName(user);
+        String houseKey = user.getHouseKey() == null || user.getHouseKey().isBlank() ? "stark" : user.getHouseKey().trim().toLowerCase(Locale.ENGLISH);
+        String houseDisplayName = resolveHouseDisplayName(houseKey);
 
         return dashboardMapper.toResponse(
                 currentDate,
                 resolveGreeting(),
                 resolveUserName(),
+                firstName,
+                houseKey,
+                houseDisplayName,
+                "Welcome, " + firstName,
+                "of House " + houseDisplayName,
+                earnedPoints == 0 && completedHabits == 0 ? "The day is unwritten." : "The chronicle continues.",
                 summary,
                 todayHabits
         );
+    }
+
+    private String resolveFirstName(AppUser user) {
+        if (user.getFirstName() != null && !user.getFirstName().isBlank()) {
+            return user.getFirstName().trim();
+        }
+        return resolveUserName();
+    }
+
+    private String resolveHouseDisplayName(String houseKey) {
+        return switch (houseKey) {
+            case "targaryen" -> "Targaryen";
+            case "lannister" -> "Lannister";
+            case "baratheon" -> "Baratheon";
+            case "greyjoy" -> "Greyjoy";
+            case "martell" -> "Martell";
+            case "tyrell" -> "Tyrell";
+            case "arryn" -> "Arryn";
+            case "tully" -> "Tully";
+            default -> "Stark";
+        };
     }
 
     private Map<Long, HabitLog> latestLogsByHabit(List<HabitLog> habitLogs) {

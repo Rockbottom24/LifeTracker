@@ -30,6 +30,9 @@ public class ExpenseDashboardBuilder {
     private static final List<String> DISPLAY_CATEGORIES = List.of(
             "Food",
             "Fitness",
+            "Gym",
+            "Chicken",
+            "Eggs",
             "Entertainment",
             "Shopping",
             "Medical",
@@ -263,14 +266,30 @@ public class ExpenseDashboardBuilder {
         if (category == null || category.isBlank()) {
             return "Other";
         }
-        String normalized = category.trim().toLowerCase(Locale.ENGLISH);
+        String trimmed = category.trim();
+        for (String displayCategory : DISPLAY_CATEGORIES) {
+            if (displayCategory.equalsIgnoreCase(trimmed)) {
+                return displayCategory;
+            }
+        }
+
+        String normalized = trimmed.toLowerCase(Locale.ENGLISH);
         if (normalized.contains("groc")) {
             return "Groceries";
         }
         if (normalized.contains("food") || normalized.contains("dining") || normalized.contains("restaurant")) {
             return "Food";
         }
-        if (normalized.contains("fit") || normalized.contains("gym") || normalized.contains("sport")) {
+        if (normalized.contains("chicken")) {
+            return "Chicken";
+        }
+        if (normalized.contains("egg")) {
+            return "Eggs";
+        }
+        if (normalized.contains("gym")) {
+            return "Gym";
+        }
+        if (normalized.contains("fit") || normalized.contains("sport")) {
             return "Fitness";
         }
         if (normalized.contains("entertain") || normalized.contains("movie") || normalized.contains("game")) {
@@ -287,12 +306,6 @@ public class ExpenseDashboardBuilder {
         }
         if (normalized.contains("parent") || normalized.contains("family")) {
             return "Parents";
-        }
-
-        for (String displayCategory : DISPLAY_CATEGORIES) {
-            if (displayCategory.equalsIgnoreCase(category.trim())) {
-                return displayCategory;
-            }
         }
         return "Other";
     }

@@ -8,8 +8,12 @@ import com.lifetracker.modules.meals.dto.MealResponse;
 import com.lifetracker.modules.meals.dto.UpdateMealRequest;
 import com.lifetracker.modules.meals.entity.MealLog;
 import com.lifetracker.modules.meals.entity.MealLogItem;
+import com.lifetracker.modules.foods.mapper.FoodMapper;
+import com.lifetracker.modules.meals.exception.NutritionCalculationException;
 import com.lifetracker.modules.meals.service.MealNutritionCalculator;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -53,11 +57,30 @@ public class MealMapper {
             item.setFoodItemId(food.getId());
             item.setQuantity(request.quantity());
             item.setUnit(request.unit());
-            item.setCalories(MealNutritionCalculator.calculate(food.getCalories(), request.quantity(), request.unit(), food.getServingUnit(), food.getReferenceQuantity(), food.getReferenceWeight()));
-            item.setProtein(MealNutritionCalculator.calculate(food.getProtein(), request.quantity(), request.unit(), food.getServingUnit(), food.getReferenceQuantity(), food.getReferenceWeight()));
-            item.setCarbs(MealNutritionCalculator.calculate(food.getCarbs(), request.quantity(), request.unit(), food.getServingUnit(), food.getReferenceQuantity(), food.getReferenceWeight()));
-            item.setFat(MealNutritionCalculator.calculate(food.getFat(), request.quantity(), request.unit(), food.getServingUnit(), food.getReferenceQuantity(), food.getReferenceWeight()));
-            item.setFiber(MealNutritionCalculator.calculate(food.getFiber(), request.quantity(), request.unit(), food.getServingUnit(), food.getReferenceQuantity(), food.getReferenceWeight()));
+            try {
+                MealNutritionCalculator.NutritionValues nutrition = MealNutritionCalculator.calculateAll(
+                        MealNutritionCalculator.NutritionValues.of(
+                                food.getCalories(),
+                                food.getProtein(),
+                                food.getCarbs(),
+                                food.getFat(),
+                                food.getFiber()
+                        ),
+                        request.quantity(),
+                        request.unit(),
+                        FoodMapper.toConversionContext(food)
+                );
+                item.setCalories(nutrition.calories());
+                item.setProtein(nutrition.protein());
+                item.setCarbs(nutrition.carbs());
+                item.setFat(nutrition.fat());
+                item.setFiber(nutrition.fiber());
+            } catch (NutritionCalculationException ex) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Invalid nutrition configuration for food '" + food.getName() + "': " + ex.getMessage()
+                );
+            }
             item.setDisplayOrder(index);
             items.add(item);
         }

@@ -9,6 +9,11 @@ import com.lifetracker.modules.foods.dto.UpdateFoodRequest;
 import com.lifetracker.modules.foods.entity.FoodItem;
 import com.lifetracker.modules.foods.mapper.FoodMapper;
 import com.lifetracker.modules.foods.repository.FoodItemRepository;
+import com.lifetracker.modules.foods.dto.CreateFoodRequest;
+import com.lifetracker.modules.foods.dto.UpdateFoodRequest;
+import com.lifetracker.modules.foods.mapper.FoodMapper;
+import com.lifetracker.modules.foods.service.ServingSizeParser;
+import com.lifetracker.modules.meals.service.MealNutritionCalculator;
 import com.lifetracker.shared.infrastructure.client.OpenFoodFactsClient;
 import com.lifetracker.shared.infrastructure.dto.openfoodfacts.NutrimentsDto;
 import com.lifetracker.shared.infrastructure.dto.openfoodfacts.OpenFoodFactsResponse;
@@ -67,6 +72,7 @@ public class FoodServiceImpl implements FoodService {
 
     @Override
     public FoodResponse createFood(CreateFoodRequest request) {
+        validateNutritionConfig(request);
         String barcode = normalizeBarcode(request.barcode());
         ensureBarcodeAvailable(barcode, null);
         FoodItem food = foodMapper.toEntity(request, currentUserService.getCurrentUserId());
@@ -76,6 +82,7 @@ public class FoodServiceImpl implements FoodService {
 
     @Override
     public FoodResponse updateFood(Long id, UpdateFoodRequest request) {
+        validateNutritionConfig(request);
         FoodItem food = findEditableFoodOrThrow(id);
         String barcode = normalizeBarcode(request.barcode());
         ensureBarcodeAvailable(barcode, food.getId());
@@ -144,6 +151,7 @@ public class FoodServiceImpl implements FoodService {
     }
 
     private ScannedFoodResponse toScannedFoodResponse(FoodItem food, String barcode) {
+        var context = FoodMapper.toConversionContext(food);
         return new ScannedFoodResponse(
                 food.getId(),
                 true,
@@ -155,12 +163,78 @@ public class FoodServiceImpl implements FoodService {
                 food.getProtein().doubleValue(),
                 food.getCarbs().doubleValue(),
                 food.getFat().doubleValue(),
-                food.getFiber().doubleValue()
+                food.getFiber().doubleValue(),
+                null,
+                food.getServingUnit(),
+                food.getReferenceQuantity() == null ? null : food.getReferenceQuantity().doubleValue(),
+                food.getReferenceWeight() == null ? null : food.getReferenceWeight().doubleValue(),
+                food.getGramsPerPiece() == null ? null : food.getGramsPerPiece().doubleValue(),
+                food.getHouseholdUnit(),
+                food.getHouseholdQuantity() == null ? null : food.getHouseholdQuantity().doubleValue(),
+                food.getHouseholdGrams() == null ? null : food.getHouseholdGrams().doubleValue(),
+                context.supportedUnits()
         );
     }
 
     private ScannedFoodResponse toScannedFoodResponse(ProductDto product, String barcode) {
         NutrimentsDto nutriments = product.nutriments();
+        var parsed = ServingSizeParser.parse(
+                product.servingSize(),
+                product.servingQuantity(),
+                product.servingQuantityUnit()
+        );
+
+        java.math.BigDecimal referenceQuantity = java.math.BigDecimal.valueOf(100);
+        java.math.BigDecimal referenceWeight = java.math.BigDecimal.valueOf(100);
+        com.lifetracker.modules.foods.enums.ServingUnit servingUnit =
+                com.lifetracker.modules.foods.enums.ServingUnit.GRAM;
+        com.lifetracker.modules.foods.enums.ServingUnit householdUnit = null;
+        java.math.BigDecimal householdQuantity = null;
+        java.math.BigDecimal householdGrams = null;
+        java.math.BigDecimal gramsPerPiece = null;
+        String servingSizeText = product.servingSize();
+
+        if (parsed.isPresent()) {
+            ServingSizeParser.ParsedServingSize serving = parsed.get();
+            if (serving.isHouseholdUnit() && serving.hasGramConversion()) {
+                householdUnit = serving.unit();
+                householdQuantity = serving.quantity();
+                householdGrams = serving.grams();
+                if (serving.unit() == com.lifetracker.modules.foods.enums.ServingUnit.PIECE) {
+                    gramsPerPiece = serving.grams().divide(serving.quantity(), 4, java.math.RoundingMode.HALF_UP);
+                }
+            } else if (serving.unit() == com.lifetracker.modules.foods.enums.ServingUnit.GRAM
+                    || serving.unit() == com.lifetracker.modules.foods.enums.ServingUnit.KILOGRAM) {
+                // Keep canonical per-100g nutrition; plain gram serving does not change basis.
+                servingUnit = com.lifetracker.modules.foods.enums.ServingUnit.GRAM;
+                referenceQuantity = java.math.BigDecimal.valueOf(100);
+                referenceWeight = java.math.BigDecimal.valueOf(100);
+            } else if (serving.unit() == com.lifetracker.modules.foods.enums.ServingUnit.ML
+                    || serving.unit() == com.lifetracker.modules.foods.enums.ServingUnit.LITER) {
+                servingUnit = serving.unit() == com.lifetracker.modules.foods.enums.ServingUnit.LITER
+                        ? com.lifetracker.modules.foods.enums.ServingUnit.ML
+                        : serving.unit();
+                referenceQuantity = serving.unit() == com.lifetracker.modules.foods.enums.ServingUnit.LITER
+                        ? serving.quantity().multiply(java.math.BigDecimal.valueOf(1000))
+                        : serving.quantity();
+                // Without density, treat ml reference weight as equal only for water-like products is unsafe.
+                // Keep mass nutrition at 100g and expose volume units only when product is volume-based later.
+                servingUnit = com.lifetracker.modules.foods.enums.ServingUnit.GRAM;
+                referenceQuantity = java.math.BigDecimal.valueOf(100);
+                referenceWeight = java.math.BigDecimal.valueOf(100);
+            }
+        }
+
+        var context = com.lifetracker.modules.foods.model.FoodConversionContext.of(
+                servingUnit,
+                referenceQuantity,
+                referenceWeight,
+                gramsPerPiece,
+                householdUnit,
+                householdQuantity,
+                householdGrams
+        );
+
         return new ScannedFoodResponse(
                 null,
                 false,
@@ -172,7 +246,16 @@ public class FoodServiceImpl implements FoodService {
                 nutriments != null ? nullToZero(nutriments.protein()) : 0.0,
                 nutriments != null ? nullToZero(nutriments.carbs()) : 0.0,
                 nutriments != null ? nullToZero(nutriments.fat()) : 0.0,
-                nutriments != null ? nullToZero(nutriments.fiber()) : 0.0
+                nutriments != null ? nullToZero(nutriments.fiber()) : 0.0,
+                servingSizeText,
+                servingUnit,
+                referenceQuantity.doubleValue(),
+                referenceWeight.doubleValue(),
+                gramsPerPiece == null ? null : gramsPerPiece.doubleValue(),
+                householdUnit,
+                householdQuantity == null ? null : householdQuantity.doubleValue(),
+                householdGrams == null ? null : householdGrams.doubleValue(),
+                context.supportedUnits()
         );
     }
 
@@ -201,5 +284,47 @@ public class FoodServiceImpl implements FoodService {
         if (existing.isPresent() && (currentFoodId == null || !currentFoodId.equals(existing.get().getId()))) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "A food with this barcode already exists");
         }
+    }
+
+    private void validateNutritionConfig(
+            CreateFoodRequest request
+    ) {
+        try {
+            MealNutritionCalculator.validateFoodConfiguration(
+                    FoodMapper.toConversionContext(toTemporaryFood(request))
+            );
+        } catch (com.lifetracker.modules.meals.exception.NutritionCalculationException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    private void validateNutritionConfig(UpdateFoodRequest request) {
+        try {
+            MealNutritionCalculator.validateFoodConfiguration(
+                    com.lifetracker.modules.foods.model.FoodConversionContext.of(
+                            request.servingUnit(),
+                            request.referenceQuantity(),
+                            request.referenceWeight(),
+                            request.gramsPerPiece(),
+                            request.householdUnit(),
+                            request.householdQuantity(),
+                            request.householdGrams()
+                    )
+            );
+        } catch (com.lifetracker.modules.meals.exception.NutritionCalculationException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    private FoodItem toTemporaryFood(CreateFoodRequest request) {
+        FoodItem food = new FoodItem();
+        food.setServingUnit(request.servingUnit());
+        food.setReferenceQuantity(request.referenceQuantity());
+        food.setReferenceWeight(request.referenceWeight());
+        food.setGramsPerPiece(request.gramsPerPiece());
+        food.setHouseholdUnit(request.householdUnit());
+        food.setHouseholdQuantity(request.householdQuantity());
+        food.setHouseholdGrams(request.householdGrams());
+        return food;
     }
 }

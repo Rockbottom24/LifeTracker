@@ -37,10 +37,28 @@ public class DashboardMapper {
             LocalDate currentDate,
             String greeting,
             String userName,
+            String firstName,
+            String houseKey,
+            String houseDisplayName,
+            String welcomeTitle,
+            String welcomeSubtitle,
+            String dayStatusMessage,
             DashboardResponse.Summary summary,
             List<DashboardResponse.TodayHabit> todayHabits
     ) {
-        return new DashboardResponse(currentDate, greeting, userName, summary, todayHabits);
+        return new DashboardResponse(
+                currentDate,
+                greeting,
+                userName,
+                firstName,
+                houseKey,
+                houseDisplayName,
+                welcomeTitle,
+                welcomeSubtitle,
+                dayStatusMessage,
+                summary,
+                todayHabits
+        );
     }
 
     public DashboardResponse.Summary toSummary(
@@ -49,7 +67,9 @@ public class DashboardMapper {
             int pendingHabits,
             BigDecimal completionPercentage,
             int currentStreak,
-            int longestStreak
+            int longestStreak,
+            int earnedPoints,
+            int possiblePoints
     ) {
         return new DashboardResponse.Summary(
                 totalHabits,
@@ -57,12 +77,15 @@ public class DashboardMapper {
                 pendingHabits,
                 normalizePercentage(completionPercentage),
                 currentStreak,
-                longestStreak
+                longestStreak,
+                earnedPoints,
+                possiblePoints
         );
     }
 
     public DashboardResponse.TodayHabit toTodayHabit(Habit habit, HabitLog habitLog) {
         boolean completed = habitLog != null && "completed".equalsIgnoreCase(habitLog.getCompletionStatus());
+        int pointsAwarded = completed && habitLog != null ? habitLog.getPointsAwarded() : 0;
         return new DashboardResponse.TodayHabit(
                 habit.getId(),
                 habit.getName(),
@@ -70,21 +93,10 @@ public class DashboardMapper {
                 pickColor(habit),
                 completed,
                 BigDecimal.ONE,
-                habitLog == null || habitLog.getValue() == null ? BigDecimal.ZERO : habitLog.getValue()
+                habitLog == null || habitLog.getValue() == null ? BigDecimal.ZERO : habitLog.getValue(),
+                habit.getPoints(),
+                pointsAwarded
         );
-    }
-
-    public List<DashboardResponse.TodayHabit> toTodayHabitList(List<Habit> habits, List<HabitLog> habitLogs) {
-        return habits.stream()
-                .map(habit -> toTodayHabit(habit, findLatestLogForHabit(habit.getId(), habitLogs)))
-                .toList();
-    }
-
-    private HabitLog findLatestLogForHabit(Long habitId, List<HabitLog> habitLogs) {
-        return habitLogs.stream()
-                .filter(log -> habitId.equals(log.getHabitId()))
-                .findFirst()
-                .orElse(null);
     }
 
     private BigDecimal normalizePercentage(BigDecimal completionPercentage) {

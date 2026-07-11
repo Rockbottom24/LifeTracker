@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../navigation/add_habit_page_route.dart';
 import '../navigation/app_navigator.dart';
+import '../providers/auth_provider.dart';
 import '../providers/habit_provider.dart';
 import '../utils/habit_notification_helper.dart';
 import '../utils/snackbar_utils.dart';
@@ -49,7 +50,10 @@ class _HabitsScreenState extends State<HabitsScreen> {
 
     if (confirmed != true || !context.mounted) return;
 
-    await HabitNotificationHelper.cancelForHabit(habitId);
+    final userId = context.read<AuthProvider>().userId;
+    if (userId != null) {
+      await HabitNotificationHelper.cancelForHabit(userId: userId, habitId: habitId);
+    }
 
     if (!context.mounted) return;
 

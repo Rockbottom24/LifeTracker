@@ -13,6 +13,7 @@ class HabitResponse {
     this.colorHex,
     this.isActive = true,
     this.habitCategoryId,
+    this.points = 0,
   });
 
   final int id;
@@ -28,6 +29,7 @@ class HabitResponse {
   final String? colorHex;
   final bool isActive;
   final int? habitCategoryId;
+  final int points;
 
   factory HabitResponse.fromJson(Map<String, dynamic> json) {
     return HabitResponse(
@@ -44,6 +46,7 @@ class HabitResponse {
       colorHex: json['colorHex'] as String?,
       isActive: json['isActive'] as bool? ?? true,
       habitCategoryId: _toInt(json['habitCategoryId']),
+      points: _toInt(json['points']) ?? 0,
     );
   }
 
@@ -64,6 +67,7 @@ class HabitResponse {
       'colorHex': colorHex,
       'isActive': isActive,
       'habitCategoryId': habitCategoryId,
+      'points': points,
     };
   }
 

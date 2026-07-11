@@ -41,7 +41,9 @@ public class HabitMapper {
                 habit.isNotificationsEnabled(),
                 habit.getIconName(),
                 habit.getColorHex(),
-                habit.isActive()
+                habit.isActive(),
+                habit.getPoints(),
+                habit.getHabitCategoryId()
         );
     }
 
@@ -62,6 +64,7 @@ public class HabitMapper {
                         : request.notificationsEnabled());
         habit.setIconName(normalizeNullableText(request.iconName()));
         habit.setColorHex(normalizeNullableText(request.colorHex()));
+        habit.setPoints(request.points() == null ? 0 : Math.max(0, request.points()));
         habit.setStartDate(
                 request.startDate() == null
                         ? LocalDate.now()
@@ -80,6 +83,7 @@ public class HabitMapper {
         habit.setNotificationsEnabled(request.notificationsEnabled());
         habit.setIconName(normalizeNullableText(request.iconName()));
         habit.setColorHex(normalizeNullableText(request.colorHex()));
+        habit.setPoints(request.points() == null ? 0 : Math.max(0, request.points()));
         habit.setStartDate(request.startDate());
         habit.setEndDate(request.endDate());
     }

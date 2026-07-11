@@ -21,6 +21,7 @@ import 'repositories/learning_repository.dart';
 import 'services/api_client.dart';
 import 'services/api_constants.dart';
 import 'services/auth_service.dart';
+import 'services/auth_token_store.dart';
 import 'services/dashboard_service.dart';
 import 'services/expense_service.dart';
 import 'services/food_service.dart';
@@ -29,6 +30,7 @@ import 'services/learning_service.dart';
 import 'services/meal_service.dart';
 import 'services/nutrition_service.dart';
 import 'services/notification_service.dart';
+import 'services/profile_service.dart';
 import 'sync/sync_engine.dart';
 import 'theme/app_style.dart';
 import 'theme/app_theme.dart';
@@ -79,10 +81,15 @@ Future<void> main() async {
     final offlineStore = OfflineDataStore(cache);
     await offlineStore.ensureMigrated();
 
-    final apiClient = DioApiClient(sharedPreferences: sharedPreferences);
+    final tokenStore = AuthTokenStore(sharedPreferences: sharedPreferences);
+
+    final apiClient = DioApiClient(
+      tokenStore: tokenStore,
+      sharedPreferences: sharedPreferences,
+    );
     await apiClient.initialize();
 
-    final authService = AuthService(apiClient: apiClient);
+    final authService = AuthService(apiClient: apiClient, tokenStore: tokenStore);
 
     final habitRepository = HabitRepository(offlineStore);
     final learningRepository = LearningRepository(offlineStore);
@@ -117,9 +124,10 @@ Future<void> main() async {
     final foodService = FoodService(apiClient: apiClient);
     final mealService = MealService(apiClient: apiClient);
     final nutritionService = NutritionService(apiClient: apiClient);
+    final profileService = ProfileService(apiClient: apiClient);
 
     final authProvider = AuthProvider(
-      sharedPreferences: sharedPreferences,
+      tokenStore: tokenStore,
       authService: authService,
       apiClient: apiClient,
     );
@@ -129,6 +137,7 @@ Future<void> main() async {
         providers: [
           ChangeNotifierProvider(create: (_) => ThemeProvider(sharedPreferences)..load()),
           ChangeNotifierProvider.value(value: authProvider),
+          Provider.value(value: profileService),
           ChangeNotifierProvider(create: (_) => DashboardProvider(dashboardService, cache)),
           ChangeNotifierProvider(create: (_) => HabitProvider(habitService, cache)),
           ChangeNotifierProvider(create: (_) => LearningProvider(learningService, cache)),

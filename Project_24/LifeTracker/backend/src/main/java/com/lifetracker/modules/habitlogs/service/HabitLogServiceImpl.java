@@ -88,7 +88,7 @@ public class HabitLogServiceImpl implements HabitLogService {
             return toResponse(habit, latestLog, today);
         }
 
-        HabitLog habitLog = createLog(habit.getId(), COMPLETED, request.value(), request.notes());
+        HabitLog habitLog = createLog(habit.getId(), COMPLETED, request.value(), request.notes(), habit.getPoints());
         HabitLog savedLog = habitLogRepository.saveAndFlush(habitLog);
         log.debug("Habit completion log inserted for habitId={} logId={}", habit.getId(), savedLog.getId());
         return toResponse(habit, savedLog, today);
@@ -110,7 +110,7 @@ public class HabitLogServiceImpl implements HabitLogService {
             return toResponse(habit, latestLog, today);
         }
 
-        HabitLog habitLog = createLog(habit.getId(), SKIPPED, BigDecimal.ZERO, "Marked incomplete for today");
+        HabitLog habitLog = createLog(habit.getId(), SKIPPED, BigDecimal.ZERO, "Marked incomplete for today", 0);
         HabitLog savedLog = habitLogRepository.saveAndFlush(habitLog);
         log.debug("Habit incomplete log inserted for habitId={} logId={}", habit.getId(), savedLog.getId());
         return toResponse(habit, savedLog, today);
@@ -138,7 +138,7 @@ public class HabitLogServiceImpl implements HabitLogService {
                 });
     }
 
-    private HabitLog createLog(Long habitId, String status, BigDecimal requestedValue, String notes) {
+    private HabitLog createLog(Long habitId, String status, BigDecimal requestedValue, String notes, int pointsAwarded) {
         LocalDateTime now = LocalDateTime.now();
         HabitLog habitLog = new HabitLog();
         habitLog.setUuid(UUID.randomUUID());
@@ -147,6 +147,7 @@ public class HabitLogServiceImpl implements HabitLogService {
         habitLog.setCompletionStatus(status.toLowerCase());
         habitLog.setValue(COMPLETED.equalsIgnoreCase(status) ? defaultCompletedValue(requestedValue) : BigDecimal.ZERO);
         habitLog.setNotes(normalizeNullableText(notes));
+        habitLog.setPointsAwarded(COMPLETED.equalsIgnoreCase(status) ? Math.max(0, pointsAwarded) : 0);
         habitLog.setCreatedAt(now);
         habitLog.setUpdatedAt(now);
         habitLog.setActive(true);
@@ -173,7 +174,9 @@ public class HabitLogServiceImpl implements HabitLogService {
                     "NOT_LOGGED",
                     false,
                     null,
-                    null
+                    null,
+                    habit.getPoints(),
+                    0
             );
         }
 
@@ -192,7 +195,9 @@ public class HabitLogServiceImpl implements HabitLogService {
                 habitLog.getCompletionStatus(),
                 completed,
                 habitLog.getValue(),
-                habitLog.getNotes()
+                habitLog.getNotes(),
+                habit.getPoints(),
+                habitLog.getPointsAwarded()
         );
     }
 

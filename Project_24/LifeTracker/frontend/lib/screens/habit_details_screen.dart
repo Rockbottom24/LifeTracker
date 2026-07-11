@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../models/habit_response.dart';
 import '../navigation/add_habit_page_route.dart';
+import '../providers/auth_provider.dart';
 import '../providers/dashboard_provider.dart';
 import '../providers/habit_provider.dart';
 import '../theme/app_spacing.dart';
@@ -70,7 +71,10 @@ class _HabitDetailsScreenState extends State<HabitDetailsScreen> {
 
     if (confirmed != true || !mounted) return;
 
-    await HabitNotificationHelper.cancelForHabit(habit.id);
+    final userId = context.read<AuthProvider>().userId;
+    if (userId != null) {
+      await HabitNotificationHelper.cancelForHabit(userId: userId, habitId: habit.id);
+    }
     final success = await provider.deleteHabit(habit.id);
 
     if (!mounted) return;

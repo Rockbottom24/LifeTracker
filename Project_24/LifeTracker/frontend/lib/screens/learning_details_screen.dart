@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../models/learning_session_response.dart';
 import '../models/learning_status.dart';
 import '../navigation/add_learning_page_route.dart';
+import '../providers/auth_provider.dart';
 import '../providers/learning_provider.dart';
 import '../theme/app_spacing.dart';
 import '../utils/learning_notification_helper.dart';
@@ -108,7 +109,10 @@ class _LearningDetailsScreenState extends State<LearningDetailsScreen> {
       isDestructive: true,
     );
     if (confirmed != true || !mounted) return;
-    await LearningNotificationHelper.cancelForSession(session.id);
+    final userId = context.read<AuthProvider>().userId;
+    if (userId != null) {
+      await LearningNotificationHelper.cancelForSession(userId: userId, sessionId: session.id);
+    }
     if (!mounted) return;
     final provider = context.read<LearningProvider>();
     final ok = await provider.deleteSession(session.id);
