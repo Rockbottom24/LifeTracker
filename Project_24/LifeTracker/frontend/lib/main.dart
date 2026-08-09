@@ -16,6 +16,7 @@ import 'providers/food_provider.dart';
 import 'providers/habit_provider.dart';
 import 'providers/learning_provider.dart';
 import 'providers/meal_provider.dart';
+import 'providers/workout_provider.dart';
 import 'repositories/dashboard_repository.dart';
 import 'repositories/habit_repository.dart';
 import 'repositories/learning_repository.dart';
@@ -32,6 +33,7 @@ import 'services/meal_service.dart';
 import 'services/nutrition_service.dart';
 import 'services/notification_service.dart';
 import 'services/profile_service.dart';
+import 'services/workout_service.dart';
 import 'sync/sync_engine.dart';
 import 'theme/app_style.dart';
 import 'theme/app_theme.dart';
@@ -131,6 +133,7 @@ Future<void> main() async {
     final mealService = MealService(apiClient: apiClient);
     final nutritionService = NutritionService(apiClient: apiClient);
     final profileService = ProfileService(apiClient: apiClient);
+    final workoutService = WorkoutService(apiClient: apiClient);
 
     final authProvider = AuthProvider(
       tokenStore: tokenStore,
@@ -150,6 +153,7 @@ Future<void> main() async {
           ChangeNotifierProvider(create: (_) => ExpenseProvider(expenseService)),
           ChangeNotifierProvider(create: (_) => FoodProvider(foodService)),
           ChangeNotifierProvider(create: (_) => MealProvider(mealService, nutritionService)),
+          ChangeNotifierProvider(create: (_) => WorkoutProvider(workoutService)),
         ],
         child: LifeTrackerApp(apiClient: apiClient, syncEngine: syncEngine, authProvider: authProvider),
       ),

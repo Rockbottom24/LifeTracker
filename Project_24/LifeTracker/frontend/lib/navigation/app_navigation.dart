@@ -10,11 +10,13 @@ import '../providers/food_provider.dart';
 import '../providers/habit_provider.dart';
 import '../providers/learning_provider.dart';
 import '../providers/meal_provider.dart';
+import '../providers/workout_provider.dart';
 import '../screens/dashboard_screen.dart';
 import '../screens/habits_screen.dart';
 import '../screens/learning_screen.dart';
 import '../screens/money_screen.dart';
 import '../screens/nutrition_screen.dart';
+import '../screens/workouts_screen.dart';
 import '../services/api_client.dart';
 import '../sync/sync_engine.dart';
 import '../theme/app_spacing.dart';
@@ -34,6 +36,7 @@ class _AppNavigationState extends State<AppNavigation> with WidgetsBindingObserv
   static const _destinations = <NavDestinationConfig>[
     NavDestinationConfig(icon: Icons.castle_outlined, selectedIcon: Icons.castle, label: 'The Realm'),
     NavDestinationConfig(icon: Icons.task_alt_outlined, selectedIcon: Icons.task_alt, label: 'Daily Quests'),
+    NavDestinationConfig(icon: Icons.fitness_center_outlined, selectedIcon: Icons.fitness_center, label: 'Training'),
     NavDestinationConfig(icon: Icons.auto_stories_outlined, selectedIcon: Icons.auto_stories, label: 'The Citadel'),
     NavDestinationConfig(icon: Icons.account_balance_outlined, selectedIcon: Icons.account_balance, label: 'Iron Bank'),
     NavDestinationConfig(icon: Icons.local_dining_outlined, selectedIcon: Icons.local_dining, label: 'Royal Kitchen'),
@@ -79,6 +82,7 @@ class _AppNavigationState extends State<AppNavigation> with WidgetsBindingObserv
       context.read<DashboardProvider>().loadDashboard(),
       context.read<HabitProvider>().loadHabits(),
       context.read<HabitProvider>().loadCategories(),
+      context.read<WorkoutProvider>().loadScheduleAndTemplates(),
       context.read<LearningProvider>().loadSessions(),
       context.read<ExpenseProvider>().refreshExpenseData(),
       context.read<FoodProvider>().loadFoods(),
@@ -102,6 +106,7 @@ class _AppNavigationState extends State<AppNavigation> with WidgetsBindingObserv
   void _reloadLocalState() {
     context.read<DashboardProvider>().loadDashboard();
     context.read<HabitProvider>().loadHabits();
+    context.read<WorkoutProvider>().loadScheduleAndTemplates();
     context.read<LearningProvider>().loadSessions();
     context.read<ExpenseProvider>().refreshExpenseData();
     context.read<FoodProvider>().loadFoods();
@@ -120,15 +125,18 @@ class _AppNavigationState extends State<AppNavigation> with WidgetsBindingObserv
         context.read<DashboardProvider>().loadDashboard();
         context.read<HabitProvider>().loadHabits();
         context.read<HabitProvider>().loadCategories();
+        context.read<WorkoutProvider>().loadScheduleAndTemplates();
         context.read<LearningProvider>().loadSessions();
       case 1:
         context.read<HabitProvider>().loadHabits();
         context.read<HabitProvider>().loadCategories();
       case 2:
-        context.read<LearningProvider>().loadSessions();
+        context.read<WorkoutProvider>().loadScheduleAndTemplates();
       case 3:
-        context.read<ExpenseProvider>().refreshExpenseData();
+        context.read<LearningProvider>().loadSessions();
       case 4:
+        context.read<ExpenseProvider>().refreshExpenseData();
+      case 5:
         context.read<FoodProvider>().loadFoods();
         context.read<MealProvider>().refreshNutritionData();
     }
@@ -142,6 +150,7 @@ class _AppNavigationState extends State<AppNavigation> with WidgetsBindingObserv
         children: const [
           DashboardScreen(),
           HabitsScreen(),
+          WorkoutsScreen(),
           LearningScreen(),
           MoneyScreen(),
           NutritionScreen(),
