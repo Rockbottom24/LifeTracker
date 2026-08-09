@@ -233,7 +233,6 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 IconButton(
                   icon: const Icon(Icons.chevron_left_rounded),
@@ -244,11 +243,15 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
                     provider.loadScheduleAndTemplates(date: prevWeek);
                   },
                 ),
-                Text(
-                  '${DateFormat('MMM d').format(startDate)} – ${DateFormat('MMM d, yyyy').format(endDate)}',
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.primary,
+                Expanded(
+                  child: Text(
+                    '${DateFormat('MMM d').format(startDate)} – ${DateFormat('MMM d, yyyy').format(endDate)}',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.primary,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 IconButton(
@@ -522,11 +525,13 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
 
   Widget _buildTemplatesHeader(ThemeData theme) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          'Workout Templates & Presets',
-          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+        Expanded(
+          child: Text(
+            'Workout Templates & Presets',
+            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
         TextButton.icon(
           onPressed: () => _openEditTemplate(),
