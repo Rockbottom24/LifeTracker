@@ -1,6 +1,6 @@
 import '../../models/workout/workout_schedule_model.dart';
 import '../../models/workout/workout_template_model.dart';
-import '../api_client.dart';
+import 'api_client.dart';
 
 class WorkoutService {
   WorkoutService({required ApiClient apiClient}) : _apiClient = apiClient;
