@@ -1,9 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'api_constants.dart';
 
-/// Stores access/refresh tokens in secure storage and profile fields in SharedPreferences.
+/// Stores access/refresh tokens in secure storage (native) or SharedPreferences (web/fallback).
 class AuthTokenStore {
   AuthTokenStore({
     required SharedPreferences sharedPreferences,
@@ -17,20 +18,58 @@ class AuthTokenStore {
   final SharedPreferences _sharedPreferences;
   final FlutterSecureStorage _secureStorage;
 
-  Future<String?> readAccessToken() => _secureStorage.read(key: ApiConstants.accessTokenKey);
+  Future<String?> readAccessToken() async {
+    if (kIsWeb) {
+      return _sharedPreferences.getString(ApiConstants.accessTokenKey);
+    }
+    try {
+      final token = await _secureStorage.read(key: ApiConstants.accessTokenKey);
+      if (token != null && token.isNotEmpty) return token;
+      return _sharedPreferences.getString(ApiConstants.accessTokenKey);
+    } catch (_) {
+      return _sharedPreferences.getString(ApiConstants.accessTokenKey);
+    }
+  }
 
-  Future<String?> readRefreshToken() => _secureStorage.read(key: ApiConstants.refreshTokenKey);
+  Future<String?> readRefreshToken() async {
+    if (kIsWeb) {
+      return _sharedPreferences.getString(ApiConstants.refreshTokenKey);
+    }
+    try {
+      final token = await _secureStorage.read(key: ApiConstants.refreshTokenKey);
+      if (token != null && token.isNotEmpty) return token;
+      return _sharedPreferences.getString(ApiConstants.refreshTokenKey);
+    } catch (_) {
+      return _sharedPreferences.getString(ApiConstants.refreshTokenKey);
+    }
+  }
 
   Future<void> persistTokens({
     required String accessToken,
     String? refreshToken,
   }) async {
-    await _secureStorage.write(key: ApiConstants.accessTokenKey, value: accessToken);
-    if (refreshToken != null && refreshToken.isNotEmpty) {
-      await _secureStorage.write(key: ApiConstants.refreshTokenKey, value: refreshToken);
+    if (kIsWeb) {
+      await _sharedPreferences.setString(ApiConstants.accessTokenKey, accessToken);
+      if (refreshToken != null && refreshToken.isNotEmpty) {
+        await _sharedPreferences.setString(ApiConstants.refreshTokenKey, refreshToken);
+      } else {
+        await _sharedPreferences.remove(ApiConstants.refreshTokenKey);
+      }
+      return;
     }
-    // Keep a non-secret marker in prefs so older code paths still see a session flag if needed.
-    await _sharedPreferences.setString(ApiConstants.accessTokenKey, 'stored_securely');
+
+    try {
+      await _secureStorage.write(key: ApiConstants.accessTokenKey, value: accessToken);
+      if (refreshToken != null && refreshToken.isNotEmpty) {
+        await _secureStorage.write(key: ApiConstants.refreshTokenKey, value: refreshToken);
+      }
+      await _sharedPreferences.setString(ApiConstants.accessTokenKey, 'stored_securely');
+    } catch (_) {
+      await _sharedPreferences.setString(ApiConstants.accessTokenKey, accessToken);
+      if (refreshToken != null && refreshToken.isNotEmpty) {
+        await _sharedPreferences.setString(ApiConstants.refreshTokenKey, refreshToken);
+      }
+    }
   }
 
   Future<void> persistProfile({
@@ -65,9 +104,14 @@ class AuthTokenStore {
   }
 
   Future<void> clear() async {
-    await _secureStorage.delete(key: ApiConstants.accessTokenKey);
-    await _secureStorage.delete(key: ApiConstants.refreshTokenKey);
+    if (!kIsWeb) {
+      try {
+        await _secureStorage.delete(key: ApiConstants.accessTokenKey);
+        await _secureStorage.delete(key: ApiConstants.refreshTokenKey);
+      } catch (_) {}
+    }
     await _sharedPreferences.remove(ApiConstants.accessTokenKey);
+    await _sharedPreferences.remove(ApiConstants.refreshTokenKey);
     await _sharedPreferences.remove(ApiConstants.userIdKey);
     await _sharedPreferences.remove(ApiConstants.userEmailKey);
     await _sharedPreferences.remove(ApiConstants.userDisplayNameKey);
@@ -76,13 +120,16 @@ class AuthTokenStore {
 
   /// Migrates legacy plaintext access tokens from SharedPreferences into secure storage.
   Future<void> migrateLegacyAccessTokenIfNeeded() async {
+    if (kIsWeb) return;
     final legacy = _sharedPreferences.getString(ApiConstants.accessTokenKey);
     if (legacy == null || legacy.isEmpty || legacy == 'stored_securely') {
       return;
     }
     final existingSecure = await readAccessToken();
     if (existingSecure == null || existingSecure.isEmpty) {
-      await _secureStorage.write(key: ApiConstants.accessTokenKey, value: legacy);
+      try {
+        await _secureStorage.write(key: ApiConstants.accessTokenKey, value: legacy);
+      } catch (_) {}
     }
     await _sharedPreferences.setString(ApiConstants.accessTokenKey, 'stored_securely');
   }
