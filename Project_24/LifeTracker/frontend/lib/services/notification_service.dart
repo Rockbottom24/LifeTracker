@@ -189,6 +189,7 @@ class NotificationService {
   }
 
   Future<void> showTestNotification({required int userId}) async {
+    if (kIsWeb) return;
     await initialize();
     final id = notificationIdFor(userId: userId, namespace: _dailyNamespace, entityId: 0);
     await _localNotifications.show(
@@ -201,6 +202,7 @@ class NotificationService {
   }
 
   Future<void> cancelHabitReminder({required int userId, required int habitId}) async {
+    if (kIsWeb) return;
     await initialize();
     final notificationId = habitNotificationId(userId: userId, habitId: habitId);
     await _localNotifications.cancel(notificationId);
@@ -220,6 +222,7 @@ class NotificationService {
     required HabitFrequency frequency,
     DateTime? anchorDate,
   }) async {
+    if (kIsWeb) return;
     await initialize();
 
     final permissionsGranted = await arePermissionsGranted();
@@ -266,6 +269,7 @@ class NotificationService {
     required int hour,
     required int minute,
   }) async {
+    if (kIsWeb) return;
     await initialize();
 
     final now = tz.TZDateTime.now(tz.local);
@@ -293,6 +297,7 @@ class NotificationService {
   }
 
   Future<void> cancelLearningReminder({required int userId, required int sessionId}) async {
+    if (kIsWeb) return;
     await initialize();
     final notificationId = learningNotificationId(userId: userId, sessionId: sessionId);
     await _localNotifications.cancel(notificationId);
@@ -305,6 +310,7 @@ class NotificationService {
     int hour = 8,
     int minute = 0,
   }) async {
+    if (kIsWeb) return;
     await initialize();
 
     final now = tz.TZDateTime.now(tz.local);
@@ -333,6 +339,7 @@ class NotificationService {
   /// Cancels all scheduled notifications owned by [userId], then clears that user's registry.
   /// Also cancels any leftover legacy device-global schedules that cannot be attributed.
   Future<void> cancelNotificationsForUser(int userId) async {
+    if (kIsWeb) return;
     await initialize();
     final ids = await _registeredIds(userId);
     for (final id in ids) {
@@ -346,6 +353,7 @@ class NotificationService {
   }
 
   Future<void> cancelAllNotifications() async {
+    if (kIsWeb) return;
     await initialize();
     await _localNotifications.cancelAll();
     final prefs = await _preferences();

@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../models/habit_frequency.dart';
 import '../models/habit_response.dart';
 import '../models/learning_session_response.dart';
@@ -14,6 +16,7 @@ class UserReminderScheduler {
     required List<HabitResponse> habits,
     required List<LearningSessionResponse> sessions,
   }) async {
+    if (kIsWeb) return;
     final service = NotificationService();
     await service.initialize();
 
