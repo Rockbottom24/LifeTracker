@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -187,6 +188,7 @@ class _LifeTrackerAppState extends State<LifeTrackerApp> {
   }
 
   Future<void> _startDeferredInitialization() async {
+    if (kIsWeb) return;
     if (_notificationsStarted) return;
     _notificationsStarted = true;
     await NotificationService().initialize();
