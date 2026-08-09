@@ -109,16 +109,38 @@ public class WorkoutsService {
     @Transactional
     public List<UserWorkoutScheduleDTO> getWeeklySchedule(Long userId, LocalDate date) {
         LocalDate startDate = date != null ? date.with(DayOfWeek.MONDAY) : LocalDate.now().with(DayOfWeek.MONDAY);
-        LocalDate endDate = startDate.plusDays(6);
+        
+        List<WorkoutTemplateEntity> presets = templateRepository.findAllAvailableForUser(userId);
+        WorkoutTemplateEntity push = presets.stream().filter(t -> "PUSH".equalsIgnoreCase(t.getCategory())).findFirst().orElse(null);
+        WorkoutTemplateEntity pull = presets.stream().filter(t -> "PULL".equalsIgnoreCase(t.getCategory())).findFirst().orElse(null);
+        WorkoutTemplateEntity legs = presets.stream().filter(t -> "LEGS".equalsIgnoreCase(t.getCategory())).findFirst().orElse(null);
+        WorkoutTemplateEntity[] rotation = new WorkoutTemplateEntity[]{push, pull, null, legs, push, pull, null};
 
-        List<UserWorkoutScheduleEntity> existing = scheduleRepository
-                .findByUserIdAndScheduledDateBetweenOrderByScheduledDateAsc(userId, startDate, endDate);
-
-        if (existing.isEmpty()) {
-            existing = initializeDefaultWeeklySchedule(userId, startDate);
+        List<UserWorkoutScheduleEntity> result = new ArrayList<>();
+        for (int i = 0; i < 7; i++) {
+            LocalDate day = startDate.plusDays(i);
+            int dayIndex = i;
+            UserWorkoutScheduleEntity schedule = scheduleRepository.findByUserIdAndScheduledDate(userId, day)
+                    .orElseGet(() -> {
+                        WorkoutTemplateEntity t = rotation[dayIndex % rotation.length];
+                        UserWorkoutScheduleEntity s = new UserWorkoutScheduleEntity();
+                        s.setUserId(userId);
+                        s.setScheduledDate(day);
+                        if (t != null) {
+                            s.setTemplate(t);
+                            s.setCustomTitle(t.getName());
+                            s.setStatus("PLANNED");
+                        } else {
+                            s.setTemplate(null);
+                            s.setCustomTitle("Rest Day");
+                            s.setStatus("REST");
+                        }
+                        return scheduleRepository.save(s);
+                    });
+            result.add(schedule);
         }
 
-        return existing.stream().map(this::mapScheduleToDTO).toList();
+        return result.stream().map(this::mapScheduleToDTO).toList();
     }
 
     @Transactional

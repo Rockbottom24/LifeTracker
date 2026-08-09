@@ -63,6 +63,111 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
     );
   }
 
+  void _showTemplateDetailsModal(WorkoutTemplateModel template) {
+    final theme = Theme.of(context);
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.65,
+          minChildSize: 0.4,
+          maxChildSize: 0.9,
+          builder: (_, scrollController) {
+            return Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: ListView(
+                controller: scrollController,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          template.name,
+                          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: template.isPreset ? Colors.blue.withValues(alpha: 0.15) : theme.colorScheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          template.isPreset ? 'PRESET' : 'CUSTOM',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: template.isPreset ? Colors.blue : theme.colorScheme.onPrimaryContainer,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (template.description != null && template.description!.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      template.description!,
+                      style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    ),
+                  ],
+                  const SizedBox(height: AppSpacing.md),
+                  const Divider(),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    'Exercises (${template.exercises.length})',
+                    style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  ...template.exercises.map((ex) => _buildExerciseRow(ex, theme)),
+                  const SizedBox(height: AppSpacing.lg),
+                  Row(
+                    children: [
+                      if (!template.isPreset) ...[
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              Navigator.of(ctx).pop();
+                              _openEditTemplate(template);
+                            },
+                            icon: const Icon(Icons.edit_outlined),
+                            label: const Text('Edit Template'),
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.md),
+                      ],
+                      Expanded(
+                        child: PrimaryButton(
+                          label: 'Done',
+                          onPressed: () => Navigator.of(ctx).pop(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -74,7 +179,14 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
       );
     }
 
-    final todaySchedule = provider.todaySchedule;
+    WorkoutScheduleModel? activeSchedule;
+    for (final item in provider.weeklySchedule) {
+      if (DateUtils.isSameDay(item.scheduledDate, _selectedDate)) {
+        activeSchedule = item;
+        break;
+      }
+    }
+    activeSchedule ??= provider.todaySchedule;
 
     return Scaffold(
       appBar: AppBar(
@@ -94,7 +206,7 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
             children: [
               _buildWeeklyStrip(provider, theme),
               const SizedBox(height: AppSpacing.lg),
-              if (todaySchedule != null) _buildTodayCard(todaySchedule, provider, theme),
+              if (activeSchedule != null) _buildScheduleCard(activeSchedule, provider, theme),
               const SizedBox(height: AppSpacing.xl),
               _buildTemplatesHeader(theme),
               const SizedBox(height: AppSpacing.sm),
@@ -108,91 +220,120 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
 
   Widget _buildWeeklyStrip(WorkoutProvider provider, ThemeData theme) {
     final dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    final startDate = provider.weeklySchedule.isNotEmpty
+        ? provider.weeklySchedule.first.scheduledDate
+        : _selectedDate;
+    final endDate = startDate.plusDays(6);
 
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Text(
-                'THIS WEEK\'S ROTATION',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.1,
-                  color: theme.colorScheme.primary,
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: List.generate(provider.weeklySchedule.length, (index) {
-                final schedule = provider.weeklySchedule[index];
-                final dayName = dayNames[schedule.scheduledDate.weekday - 1];
-                final isSelected = DateUtils.isSameDay(schedule.scheduledDate, _selectedDate);
-                final isToday = DateUtils.isSameDay(schedule.scheduledDate, DateTime.now());
-
-                Color badgeColor;
-                IconData badgeIcon;
-                if (schedule.isCompleted) {
-                  badgeColor = Colors.green;
-                  badgeIcon = Icons.check_circle_rounded;
-                } else if (schedule.isMissed) {
-                  badgeColor = Colors.redAccent;
-                  badgeIcon = Icons.cancel_rounded;
-                } else if (schedule.isRest) {
-                  badgeColor = Colors.amber;
-                  badgeIcon = Icons.hotel_rounded;
-                } else {
-                  badgeColor = theme.colorScheme.primary;
-                  badgeIcon = Icons.fitness_center_rounded;
-                }
-
-                return InkWell(
-                  onTap: () {
-                    setState(() => _selectedDate = schedule.scheduledDate);
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.chevron_left_rounded),
+                  tooltip: 'Previous Week',
+                  onPressed: () {
+                    final prevWeek = _selectedDate.subtract(const Duration(days: 7));
+                    setState(() => _selectedDate = prevWeek);
+                    provider.loadScheduleAndTemplates(date: prevWeek);
                   },
-                  borderRadius: BorderRadius.circular(14),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 180),
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? theme.colorScheme.primaryContainer.withValues(alpha: 0.8)
-                          : (isToday ? theme.colorScheme.surfaceContainerHighest : Colors.transparent),
+                ),
+                Text(
+                  '${DateFormat('MMM d').format(startDate)} – ${DateFormat('MMM d, yyyy').format(endDate)}',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.chevron_right_rounded),
+                  tooltip: 'Next Week',
+                  onPressed: () {
+                    final nextWeek = _selectedDate.add(const Duration(days: 7));
+                    setState(() => _selectedDate = nextWeek);
+                    provider.loadScheduleAndTemplates(date: nextWeek);
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              child: Row(
+                children: List.generate(provider.weeklySchedule.length, (index) {
+                  final schedule = provider.weeklySchedule[index];
+                  final dayName = dayNames[schedule.scheduledDate.weekday - 1];
+                  final isSelected = DateUtils.isSameDay(schedule.scheduledDate, _selectedDate);
+                  final isToday = DateUtils.isSameDay(schedule.scheduledDate, DateTime.now());
+
+                  Color badgeColor;
+                  IconData badgeIcon;
+                  if (schedule.isCompleted) {
+                    badgeColor = Colors.green;
+                    badgeIcon = Icons.check_circle_rounded;
+                  } else if (schedule.isMissed) {
+                    badgeColor = Colors.redAccent;
+                    badgeIcon = Icons.cancel_rounded;
+                  } else if (schedule.isRest) {
+                    badgeColor = Colors.amber;
+                    badgeIcon = Icons.hotel_rounded;
+                  } else {
+                    badgeColor = theme.colorScheme.primary;
+                    badgeIcon = Icons.fitness_center_rounded;
+                  }
+
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 3),
+                    child: InkWell(
+                      onTap: () {
+                        setState(() => _selectedDate = schedule.scheduledDate);
+                      },
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: isSelected ? theme.colorScheme.primary : Colors.transparent,
-                        width: 1.5,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 180),
+                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? theme.colorScheme.primaryContainer.withValues(alpha: 0.8)
+                              : (isToday ? theme.colorScheme.surfaceContainerHighest : Colors.transparent),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: isSelected ? theme.colorScheme.primary : Colors.transparent,
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              dayName,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: isSelected ? theme.colorScheme.onPrimaryContainer : theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Icon(badgeIcon, size: 20, color: badgeColor),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${schedule.scheduledDate.day}',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    child: Column(
-                      children: [
-                        Text(
-                          dayName,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: isSelected ? theme.colorScheme.onPrimaryContainer : theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Icon(badgeIcon, size: 20, color: badgeColor),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${schedule.scheduledDate.day}',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }),
+                  );
+                }),
+              ),
             ),
           ],
         ),
@@ -200,8 +341,9 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
     );
   }
 
-  Widget _buildTodayCard(WorkoutScheduleModel schedule, WorkoutProvider provider, ThemeData theme) {
-    final formattedDate = DateFormat('EEEE, MMM d').format(schedule.scheduledDate);
+  Widget _buildScheduleCard(WorkoutScheduleModel schedule, WorkoutProvider provider, ThemeData theme) {
+    final formattedDate = DateFormat('EEEE, MMM d, yyyy').format(schedule.scheduledDate);
+    final isToday = DateUtils.isSameDay(schedule.scheduledDate, DateTime.now());
 
     return Card(
       elevation: 2,
@@ -212,25 +354,29 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      formattedDate.toUpperCase(),
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        (isToday ? 'TODAY • $formattedDate' : formattedDate).toUpperCase(),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      schedule.customTitle,
-                      style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-                    ),
-                  ],
+                      const SizedBox(height: 2),
+                      Text(
+                        schedule.customTitle,
+                        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 8),
                 _buildStatusChip(schedule.status, theme),
               ],
             ),
@@ -249,37 +395,39 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
               Center(
                 child: Column(
                   children: [
-                    Icon(Icons.bedtime_outlined, size: 48, color: theme.colorScheme.primary),
-                    const SizedBox(height: 8),
+                    Icon(Icons.bedtime_outlined, size: 44, color: theme.colorScheme.primary),
+                    const SizedBox(height: 6),
                     Text('Rest & Recovery Day', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 4),
-                    Text('Muscle growth happens during rest.', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                    Text('Muscle growth happens during rest.', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
                   ],
                 ),
               ),
             ],
             const SizedBox(height: AppSpacing.lg),
             if (!schedule.isCompleted && !schedule.isRest) ...[
-              Row(
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
-                    child: PrimaryButton(
-                      label: 'Complete Workout',
-                      icon: Icons.check_circle_outline,
-                      isLoading: provider.isActionLoading,
-                      onPressed: () => _completeWorkout(schedule),
-                    ),
+                  PrimaryButton(
+                    label: 'Complete Workout',
+                    icon: Icons.check_circle_outline,
+                    isLoading: provider.isActionLoading,
+                    onPressed: () => _completeWorkout(schedule),
                   ),
-                  const SizedBox(width: AppSpacing.sm),
-                  OutlinedButton.icon(
-                    onPressed: provider.isActionLoading ? null : _missedToday,
-                    icon: const Icon(Icons.forward_rounded, color: Colors.orange),
-                    label: const Text('Missed Today'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.orange,
-                      side: const BorderSide(color: Colors.orange),
+                  if (isToday) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    OutlinedButton.icon(
+                      onPressed: provider.isActionLoading ? null : _missedToday,
+                      icon: const Icon(Icons.forward_rounded, color: Colors.orange),
+                      label: const Text('Missed Today (Shift Cycle)'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.orange,
+                        side: const BorderSide(color: Colors.orange),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ] else if (schedule.isCompleted) ...[
@@ -347,17 +495,23 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
             backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.15),
             child: Text('${ex.sequenceOrder}', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: theme.colorScheme.primary)),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 10),
           Expanded(
-            child: Text(ex.exerciseName, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+            child: Text(
+              ex.exerciseName,
+              style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
           ),
+          const SizedBox(width: 6),
           Text(
-            '${ex.sets} sets × ${ex.reps}',
+            '${ex.sets}×${ex.reps}',
             style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
             decoration: BoxDecoration(color: theme.colorScheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(6)),
             child: Text('${ex.restSeconds}s rest', style: const TextStyle(fontSize: 10)),
           ),
@@ -398,6 +552,7 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
           margin: const EdgeInsets.only(bottom: AppSpacing.sm),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           child: ListTile(
+            onTap: () => _showTemplateDetailsModal(template),
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             leading: CircleAvatar(
               backgroundColor: template.isPreset ? Colors.blue.withValues(alpha: 0.15) : theme.colorScheme.primary.withValues(alpha: 0.15),
@@ -411,19 +566,14 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
               '${template.category} • ${template.exercises.length} Exercises',
               style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
             ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (!template.isPreset)
-                  IconButton(
-                    icon: const Icon(Icons.edit_outlined, size: 20),
-                    onPressed: () => _openEditTemplate(template),
-                  ),
-              ],
-            ),
+            trailing: Icon(Icons.chevron_right_rounded, color: theme.colorScheme.onSurfaceVariant),
           ),
         );
       }).toList(),
     );
   }
+}
+
+extension _DateTimeUtils on DateTime {
+  DateTime plusDays(int days) => add(Duration(days: days));
 }
