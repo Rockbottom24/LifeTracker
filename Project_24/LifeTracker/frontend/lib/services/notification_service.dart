@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -36,6 +37,10 @@ class NotificationService {
 
   Future<void> initialize() async {
     if (_initialized) return;
+    if (kIsWeb) {
+      _initialized = true;
+      return;
+    }
 
     _prefs ??= await SharedPreferences.getInstance();
     await _configureLocalTimeZone();
@@ -67,11 +72,12 @@ class NotificationService {
   }
 
   Future<void> _configureLocalTimeZone() async {
+    if (kIsWeb) return;
     tz.initializeTimeZones();
 
     try {
       final timezoneInfo = await FlutterTimezone.getLocalTimezone();
-      final locationName = timezoneInfo.identifier;
+      final locationName = timezoneInfo?.identifier ?? 'Asia/Kolkata';
       tz.setLocalLocation(tz.getLocation(locationName));
       AppLogger.debug('Local timezone set to device timezone: $locationName');
     } catch (error) {
