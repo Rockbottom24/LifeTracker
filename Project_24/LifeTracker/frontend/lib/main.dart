@@ -68,11 +68,16 @@ Future<void> main() async {
     };
 
     final sharedPreferences = await SharedPreferences.getInstance();
-    final storedBaseUrl = sharedPreferences.getString(ApiConstants.baseUrlKey);
-    if (storedBaseUrl == null ||
-        storedBaseUrl.isEmpty ||
-        ApiConstants.shouldResetLegacyBaseUrl(storedBaseUrl)) {
-      await sharedPreferences.setString(ApiConstants.baseUrlKey, ApiConstants.defaultBaseUrl);
+    const cliBaseUrl = String.fromEnvironment('API_BASE_URL');
+    if (cliBaseUrl.isNotEmpty) {
+      await sharedPreferences.setString(ApiConstants.baseUrlKey, ApiConstants.resolveBaseUrl(cliBaseUrl));
+    } else {
+      final storedBaseUrl = sharedPreferences.getString(ApiConstants.baseUrlKey);
+      if (storedBaseUrl == null ||
+          storedBaseUrl.isEmpty ||
+          ApiConstants.shouldResetLegacyBaseUrl(storedBaseUrl)) {
+        await sharedPreferences.setString(ApiConstants.baseUrlKey, ApiConstants.defaultBaseUrl);
+      }
     }
 
     final cache = LocalCacheStore.instance;

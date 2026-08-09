@@ -1,4 +1,7 @@
-import 'serving_unit.dart';
+import '../models/serving_unit.dart';
+import '../models/food_category.dart';
+import '../models/food_response.dart';
+import '../utils/meal_nutrition_calculator.dart';
 
 class ScannedFood {
   final int? foodId;
@@ -75,10 +78,44 @@ class ScannedFood {
     );
   }
 
+  FoodResponse toFoodResponse() {
+    return FoodResponse(
+      id: foodId ?? 0,
+      uuid: '',
+      name: name,
+      category: FoodCategory.other,
+      servingUnit: servingUnit ?? ServingUnit.gram,
+      referenceQuantity: referenceQuantity ?? 100,
+      referenceWeight: referenceWeight ?? 100,
+      calories: calories,
+      protein: protein,
+      carbs: carbs,
+      fat: fat,
+      fiber: fiber,
+      system: false,
+      barcode: barcode,
+      brand: brand,
+      imageUrl: imageUrl,
+      source: source,
+      gramsPerPiece: gramsPerPiece,
+      householdUnit: householdUnit,
+      householdQuantity: householdQuantity,
+      householdGrams: householdGrams,
+    );
+  }
+
   List<ServingUnit> get effectiveSupportedUnits {
-    if (supportedUnits.isNotEmpty) return supportedUnits;
-    final unit = servingUnit ?? ServingUnit.gram;
-    return [unit, ServingUnit.gram];
+    final list = supportedUnits.isNotEmpty ? supportedUnits : [servingUnit ?? ServingUnit.gram, ServingUnit.gram];
+    final Set<ServingUnit> uniqueUnits = list.toSet();
+    final food = toFoodResponse();
+    return uniqueUnits.where((unit) {
+      try {
+        MealNutritionCalculator.resolveScaleFactor(quantity: 1.0, unit: unit, food: food);
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }).toList();
   }
 
   static List<ServingUnit> _parseSupportedUnits(dynamic value) {

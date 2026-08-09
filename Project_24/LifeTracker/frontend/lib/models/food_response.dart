@@ -1,5 +1,6 @@
-import 'food_category.dart';
-import 'serving_unit.dart';
+import '../models/food_category.dart';
+import '../models/serving_unit.dart';
+import '../utils/meal_nutrition_calculator.dart';
 
 class FoodResponse {
   const FoodResponse({
@@ -50,10 +51,19 @@ class FoodResponse {
   final double? householdGrams;
   final List<ServingUnit> supportedUnits;
 
-  /// Units shown in meal/logging UI. Falls back when API list is empty.
+  /// Units shown in meal/logging UI. Falls back when API list is empty,
+  /// and filters out any unit that fails conversion.
   List<ServingUnit> get effectiveSupportedUnits {
-    if (supportedUnits.isNotEmpty) return supportedUnits;
-    return [servingUnit, ServingUnit.gram];
+    final list = supportedUnits.isNotEmpty ? supportedUnits : [servingUnit, ServingUnit.gram];
+    final Set<ServingUnit> uniqueUnits = list.toSet();
+    return uniqueUnits.where((unit) {
+      try {
+        MealNutritionCalculator.resolveScaleFactor(quantity: 1.0, unit: unit, food: this);
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }).toList();
   }
 
   bool get hasPieceConversion {

@@ -15,6 +15,7 @@ import '../theme/app_spacing.dart';
 import '../utils/meal_nutrition_calculator.dart';
 import '../utils/meal_ui_utils.dart';
 import '../utils/snackbar_utils.dart';
+import 'barcode_scanner_screen.dart';
 import '../widgets/app_chip.dart';
 import '../widgets/app_dropdown.dart';
 import '../widgets/app_text_field.dart';
@@ -182,6 +183,43 @@ class _AddMealScreenState extends State<AddMealScreen> {
 
   void _removeDraftItem(int index) {
     setState(() => _draftItems.removeAt(index));
+  }
+
+  Future<void> _scanBarcode() async {
+    final navigator = Navigator.of(context);
+    final foodProvider = context.read<FoodProvider>();
+
+    final barcode = await navigator.push<String>(
+      MaterialPageRoute(
+        builder: (_) => const BarcodeScannerScreen(),
+      ),
+    );
+
+    if (!mounted || barcode == null) return;
+
+    setState(() {
+      _selectedFood = null;
+    });
+
+    final product = await foodProvider.lookupBarcode(barcode);
+
+    if (!mounted) return;
+
+    if (product == null) {
+      SnackBarUtils.showError(context, foodProvider.errorMessage ?? 'Product not found');
+      return;
+    }
+
+    final resolved = await foodProvider.resolveScannedFoodForMeal(product);
+
+    if (!mounted) return;
+
+    if (resolved == null) {
+      SnackBarUtils.showError(context, foodProvider.errorMessage ?? 'Failed to resolve scanned food');
+      return;
+    }
+
+    _selectFood(resolved);
   }
 
   MealNutritionSummary get _draftTotal {
@@ -352,6 +390,20 @@ class _AddMealScreenState extends State<AddMealScreen> {
                     _onSearchChanged(value);
                   },
                 ),
+                if (_selectedFood == null) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  OutlinedButton.icon(
+                    onPressed: _scanBarcode,
+                    icon: const Icon(Icons.qr_code_scanner_rounded),
+                    label: const Text('Scan barcode to find food'),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ],
                 if (foodProvider.isSearching)
                   const Padding(
                     padding: EdgeInsets.only(top: AppSpacing.md),
