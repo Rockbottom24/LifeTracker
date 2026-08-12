@@ -12,6 +12,10 @@ class UpdateHabitRequest {
   final String iconName;
   final String colorHex;
   final int points;
+  /// Comma-separated weekday numbers (1=Mon..7=Sun). Used for CUSTOM frequency.
+  final List<int>? scheduleDays;
+  /// Day-of-month anchor for MONTHLY habits.
+  final DateTime? reminderDate;
 
   const UpdateHabitRequest({
     required this.habitCategoryId,
@@ -25,6 +29,8 @@ class UpdateHabitRequest {
     required this.iconName,
     required this.colorHex,
     this.points = 0,
+    this.scheduleDays,
+    this.reminderDate,
   });
 
   Map<String, dynamic> toJson() {
@@ -40,6 +46,8 @@ class UpdateHabitRequest {
       'iconName': iconName,
       'colorHex': colorHex,
       'points': points,
+      'scheduleDays': scheduleDays?.join(','),
+      'reminderDate': reminderDate == null ? null : _date(reminderDate!),
     };
   }
 

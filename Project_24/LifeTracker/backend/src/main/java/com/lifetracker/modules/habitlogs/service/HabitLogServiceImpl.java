@@ -15,12 +15,15 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -67,8 +70,29 @@ public class HabitLogServiceImpl implements HabitLogService {
                 ));
 
         return activeHabits.stream()
+                .filter(habit -> isScheduledForDate(habit, today))
                 .map(habit -> toResponse(habit, latestLogsByHabitId.get(habit.getId()), today))
                 .toList();
+    }
+
+    /**
+     * For CUSTOM frequency habits, check if today's ISO weekday (1=Mon..7=Sun)
+     * is included in the habit's scheduleDays list.
+     * All other frequency types are always scheduled.
+     */
+    private boolean isScheduledForDate(Habit habit, LocalDate date) {
+        if (habit.getFrequency() != com.lifetracker.modules.habits.enums.HabitFrequency.CUSTOM) {
+            return true;
+        }
+        String days = habit.getScheduleDays();
+        if (days == null || days.isBlank()) {
+            return true; // no restriction — treat as daily
+        }
+        int todayDayOfWeek = date.getDayOfWeek().getValue(); // 1=Mon..7=Sun
+        Set<String> scheduled = Arrays.stream(days.split(","))
+                .map(String::trim)
+                .collect(Collectors.toSet());
+        return scheduled.contains(String.valueOf(todayDayOfWeek));
     }
 
     @Override

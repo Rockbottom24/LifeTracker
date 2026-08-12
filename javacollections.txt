@@ -1,0 +1,31 @@
+
+
+
+
+Iterable
+    │
+Collection
+    │
+ ┌──────┴─────────┐
+ │                │
+List             Set
+ │                │
+ │          ┌─────┴─────────┐
+ │          │               │
+ArrayList  HashSet      TreeSet
+LinkedList LinkedHashSet
+ │
+Queue
+ │
+PriorityQueue
+Deque
+ │
+ArrayDeque
+
+Map (Separate Interface)
+ │
+├── HashMap
+├── LinkedHashMap
+├── TreeMap
+├── Hashtable
+└── ConcurrentHashMap

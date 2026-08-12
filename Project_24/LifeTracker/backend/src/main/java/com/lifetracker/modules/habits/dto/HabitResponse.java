@@ -20,6 +20,8 @@ public record HabitResponse(
         String colorHex,
         Boolean isActive,
         Integer points,
-        Long habitCategoryId
+        Long habitCategoryId,
+        String scheduleDays,
+        LocalDate reminderDate
 ) {
 }

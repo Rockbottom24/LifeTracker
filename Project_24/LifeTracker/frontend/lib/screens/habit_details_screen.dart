@@ -146,6 +146,14 @@ class _HabitDetailsScreenState extends State<HabitDetailsScreen> {
                     child: Column(
                       children: [
                         DetailInfoRow(icon: Icons.category_outlined, label: 'Category', value: categoryName),
+                        DetailInfoRow(icon: Icons.repeat_rounded, label: 'Frequency', value: habit.frequencyLabel),
+                        if (habit.frequency.toUpperCase() == 'CUSTOM' &&
+                            habit.formattedScheduleDays != null)
+                          DetailInfoRow(
+                            icon: Icons.calendar_view_week_rounded,
+                            label: 'Active days',
+                            value: habit.formattedScheduleDays!,
+                          ),
                         DetailInfoRow(icon: Icons.schedule_outlined, label: 'Reminder time', value: habit.formattedReminderTime ?? 'Not set'),
                         DetailInfoRow(icon: Icons.notifications_outlined, label: 'Notifications', value: habit.notificationsEnabled ? 'Enabled' : 'Disabled'),
                         DetailInfoRow(icon: Icons.local_fire_department_outlined, label: 'Current streak', value: summary.currentStreak),

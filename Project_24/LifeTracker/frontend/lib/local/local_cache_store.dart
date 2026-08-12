@@ -114,12 +114,23 @@ class LocalCacheStore {
 
   // --- Completed today ---
 
+  /// Returns completed habit IDs for TODAY only. Stale entries from previous
+  /// days are discarded automatically.
   Set<int> getCompletedTodayHabitIds() {
     final raw = box.get(_completedTodayKey);
     if (raw == null || raw.isEmpty) return {};
     try {
-      final decoded = jsonDecode(raw) as List<dynamic>;
-      return decoded.map((item) => (item as num).toInt()).toSet();
+      final decoded = jsonDecode(raw) as Map<String, dynamic>;
+      final savedDate = decoded['date'] as String?;
+      final today = DateTime.now();
+      final todayStr = '${today.year}-${today.month.toString().padLeft(2,'0')}-${today.day.toString().padLeft(2,'0')}';
+      if (savedDate != todayStr) {
+        // New day — discard stale completion state
+        box.delete(_completedTodayKey);
+        return {};
+      }
+      final ids = (decoded['ids'] as List<dynamic>? ?? []);
+      return ids.map((item) => (item as num).toInt()).toSet();
     } catch (error) {
       AppLogger.debug('Failed to read completed today cache: $error');
       return {};
@@ -127,7 +138,12 @@ class LocalCacheStore {
   }
 
   Future<void> saveCompletedTodayHabitIds(Set<int> habitIds) async {
-    await box.put(_completedTodayKey, jsonEncode(habitIds.toList()));
+    final today = DateTime.now();
+    final todayStr = '${today.year}-${today.month.toString().padLeft(2,'0')}-${today.day.toString().padLeft(2,'0')}';
+    await box.put(
+      _completedTodayKey,
+      jsonEncode({'date': todayStr, 'ids': habitIds.toList()}),
+    );
   }
 
   Future<void> addCompletedToday(int habitId) async {

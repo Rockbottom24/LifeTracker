@@ -14,6 +14,8 @@ class HabitResponse {
     this.isActive = true,
     this.habitCategoryId,
     this.points = 0,
+    this.scheduleDays,
+    this.reminderDate,
   });
 
   final int id;
@@ -30,6 +32,10 @@ class HabitResponse {
   final bool isActive;
   final int? habitCategoryId;
   final int points;
+  /// Parsed weekday numbers from "1,2,3" → [1, 2, 3] (1=Mon..7=Sun).
+  final List<int>? scheduleDays;
+  /// Day-of-month anchor for MONTHLY habits.
+  final DateTime? reminderDate;
 
   factory HabitResponse.fromJson(Map<String, dynamic> json) {
     return HabitResponse(
@@ -47,6 +53,8 @@ class HabitResponse {
       isActive: json['isActive'] as bool? ?? true,
       habitCategoryId: _toInt(json['habitCategoryId']),
       points: _toInt(json['points']) ?? 0,
+      scheduleDays: _parseScheduleDays(json['scheduleDays']),
+      reminderDate: _parseDate(json['reminderDate']),
     );
   }
 
@@ -68,6 +76,8 @@ class HabitResponse {
       'isActive': isActive,
       'habitCategoryId': habitCategoryId,
       'points': points,
+      'scheduleDays': scheduleDays?.join(','),
+      'reminderDate': reminderDate?.toIso8601String(),
     };
   }
 
@@ -94,11 +104,23 @@ class HabitResponse {
     return null;
   }
 
+  static List<int>? _parseScheduleDays(dynamic value) {
+    if (value == null) return null;
+    final text = value.toString().trim();
+    if (text.isEmpty) return null;
+    return text
+        .split(',')
+        .map((s) => int.tryParse(s.trim()))
+        .whereType<int>()
+        .toList();
+  }
+
   String get frequencyLabel {
     return switch (frequency.toUpperCase()) {
       'DAILY' => 'Daily',
       'WEEKLY' => 'Weekly',
       'MONTHLY' => 'Monthly',
+      'CUSTOM' => 'Custom',
       _ => frequency,
     };
   }
@@ -110,5 +132,15 @@ class HabitResponse {
     final period = hour >= 12 ? 'PM' : 'AM';
     final displayHour = hour % 12 == 0 ? 12 : hour % 12;
     return '$displayHour:$minute $period';
+  }
+
+  /// Human-readable schedule days, e.g. "Mon, Wed, Fri"
+  String? get formattedScheduleDays {
+    if (scheduleDays == null || scheduleDays!.isEmpty) return null;
+    const names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return scheduleDays!.map((d) {
+      final idx = d - 1;
+      return (idx >= 0 && idx < names.length) ? names[idx] : '';
+    }).where((s) => s.isNotEmpty).join(', ');
   }
 }

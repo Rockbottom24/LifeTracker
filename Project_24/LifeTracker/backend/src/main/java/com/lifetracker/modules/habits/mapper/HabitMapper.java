@@ -43,7 +43,9 @@ public class HabitMapper {
                 habit.getColorHex(),
                 habit.isActive(),
                 habit.getPoints(),
-                habit.getHabitCategoryId()
+                habit.getHabitCategoryId(),
+                habit.getScheduleDays(),
+                habit.getReminderDate()
         );
     }
 
@@ -72,6 +74,8 @@ public class HabitMapper {
         habit.setEndDate(request.endDate());
         habit.setDisplayOrder(0);
         habit.setActive(true);
+        habit.setScheduleDays(normalizeNullableText(request.scheduleDays()));
+        habit.setReminderDate(request.reminderDate());
     }
 
     private void applyUpdateRequest(Habit habit, UpdateHabitRequest request) {
@@ -86,6 +90,8 @@ public class HabitMapper {
         habit.setPoints(request.points() == null ? 0 : Math.max(0, request.points()));
         habit.setStartDate(request.startDate());
         habit.setEndDate(request.endDate());
+        habit.setScheduleDays(normalizeNullableText(request.scheduleDays()));
+        habit.setReminderDate(request.reminderDate());
     }
 
     private String normalizeNullableText(String value) {

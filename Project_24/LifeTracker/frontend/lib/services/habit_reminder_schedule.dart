@@ -28,6 +28,9 @@ class HabitReminderSchedule {
         return DateTimeComponents.dayOfWeekAndTime;
       case HabitFrequency.monthly:
         return DateTimeComponents.dayOfMonthAndTime;
+      case HabitFrequency.custom:
+        // Custom habits fire daily; backend controls which days to display
+        return DateTimeComponents.time;
     }
   }
 
@@ -48,6 +51,9 @@ class HabitReminderSchedule {
       case HabitFrequency.monthly:
         final dayOfMonth = anchorDate?.day ?? now.day;
         return _nextMonthly(now, dayOfMonth, hour, minute);
+      case HabitFrequency.custom:
+        // Fire daily at the set time; the backend filters by scheduled days
+        return _nextDaily(now, hour, minute);
     }
   }
 

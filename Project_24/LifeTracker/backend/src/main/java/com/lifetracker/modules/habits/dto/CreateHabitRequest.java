@@ -19,6 +19,8 @@ public record CreateHabitRequest(
         @NotNull Boolean notificationsEnabled,
         String iconName,
         String colorHex,
-        @Min(0) Integer points
+        @Min(0) Integer points,
+        String scheduleDays,
+        LocalDate reminderDate
 ) {
 }

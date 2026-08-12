@@ -9,7 +9,6 @@ import jakarta.persistence.Table;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-
 import java.time.LocalTime;
 
 import jakarta.persistence.EnumType;
@@ -77,6 +76,12 @@ public class Habit {
     @Column(name = "points", nullable = false)
     private int points = 0;
 
+    @Column(name = "schedule_days", length = 20)
+    private String scheduleDays;
+
+    @Column(name = "reminder_date")
+    private LocalDate reminderDate;
+
     public void setFrequency(HabitFrequency frequency) {
         this.frequency = frequency;
     }
@@ -123,6 +128,22 @@ public class Habit {
 
     public void setPoints(int points) {
         this.points = Math.max(0, points);
+    }
+
+    public String getScheduleDays() {
+        return scheduleDays;
+    }
+
+    public void setScheduleDays(String scheduleDays) {
+        this.scheduleDays = scheduleDays;
+    }
+
+    public LocalDate getReminderDate() {
+        return reminderDate;
+    }
+
+    public void setReminderDate(LocalDate reminderDate) {
+        this.reminderDate = reminderDate;
     }
 
     public Habit() {

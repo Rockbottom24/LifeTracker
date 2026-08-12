@@ -46,6 +46,7 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
   String _selectedColor = HabitFormOptions.colorHexValues.first;
   String _selectedIcon = HabitFormOptions.iconNames.first;
   int? _pendingCategoryId;
+  List<int> _selectedScheduleDays = [];
 
   String? _categoryError;
   String? _frequencyError;
@@ -89,6 +90,10 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
 
     if (habit.iconName != null && habit.iconName!.isNotEmpty) {
       _selectedIcon = habit.iconName!;
+    }
+
+    if (habit.scheduleDays != null) {
+      _selectedScheduleDays = List<int>.from(habit.scheduleDays!);
     }
   }
 
@@ -169,6 +174,9 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
       iconName: _selectedIcon,
       colorHex: _selectedColor,
       points: int.tryParse(_pointsController.text.trim()) ?? 0,
+      scheduleDays: _selectedFrequency == HabitFrequency.custom
+          ? _selectedScheduleDays
+          : null,
     );
 
     final habit = await provider.createHabit(request);
@@ -216,6 +224,9 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
       iconName: _selectedIcon,
       colorHex: _selectedColor,
       points: int.tryParse(_pointsController.text.trim()) ?? 0,
+      scheduleDays: _selectedFrequency == HabitFrequency.custom
+          ? _selectedScheduleDays
+          : null,
     );
 
     final success = await provider.updateHabit(habit.id, request);
@@ -328,11 +339,17 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
           onFrequencyChanged: (frequency) => setState(() {
             _selectedFrequency = frequency;
             _frequencyError = null;
+            // Reset schedule days when switching away from custom
+            if (frequency != HabitFrequency.custom) {
+              _selectedScheduleDays = [];
+            }
           }),
           onReminderTimeChanged: (time) => setState(() => _reminderTime = time),
           onNotificationsChanged: (value) => setState(() => _notificationsEnabled = value),
           onColorChanged: (color) => setState(() => _selectedColor = color),
           onIconChanged: (icon) => setState(() => _selectedIcon = icon),
+          selectedScheduleDays: _selectedScheduleDays,
+          onScheduleDaysChanged: (days) => setState(() => _selectedScheduleDays = days),
         ),
         const SizedBox(height: AppSpacing.xxl),
         AnimatedOpacity(

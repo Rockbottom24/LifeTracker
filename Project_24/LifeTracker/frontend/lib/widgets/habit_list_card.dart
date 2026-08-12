@@ -70,6 +70,14 @@ class HabitListCard extends StatelessWidget {
                   backgroundColor: theme.colorScheme.tertiaryContainer,
                   foregroundColor: theme.colorScheme.onTertiaryContainer,
                 ),
+              if (habit.frequency.toUpperCase() == 'CUSTOM' &&
+                  habit.formattedScheduleDays != null)
+                AppChip(
+                  icon: Icons.calendar_view_week_rounded,
+                  label: habit.formattedScheduleDays!,
+                  backgroundColor: theme.colorScheme.secondaryContainer,
+                  foregroundColor: theme.colorScheme.onSecondaryContainer,
+                ),
               if (completed)
                 AppChip(
                   icon: Icons.check_circle,

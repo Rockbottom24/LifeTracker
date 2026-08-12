@@ -53,13 +53,13 @@ class WorkoutProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> missedToday() async {
+  Future<bool> missedToday({DateTime? date}) async {
     isActionLoading = true;
     errorMessage = null;
     notifyListeners();
 
     try {
-      weeklySchedule = await _workoutService.missedToday();
+      weeklySchedule = await _workoutService.missedToday(date: date);
       return true;
     } on ApiException catch (e) {
       errorMessage = e.message;

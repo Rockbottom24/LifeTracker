@@ -13,6 +13,7 @@ import 'forms/form_tablet_grid.dart';
 import 'forms/reminder_form_section.dart';
 import 'frequency_chips.dart';
 import 'responsive_form_container.dart';
+import 'weekday_picker.dart';
 
 class AddHabitFormContent extends StatelessWidget {
   const AddHabitFormContent({
@@ -38,6 +39,8 @@ class AddHabitFormContent extends StatelessWidget {
     required this.onNotificationsChanged,
     required this.onColorChanged,
     required this.onIconChanged,
+    this.selectedScheduleDays = const [],
+    required this.onScheduleDaysChanged,
   });
 
   final TextEditingController nameController;
@@ -61,6 +64,8 @@ class AddHabitFormContent extends StatelessWidget {
   final ValueChanged<bool> onNotificationsChanged;
   final ValueChanged<String> onColorChanged;
   final ValueChanged<String> onIconChanged;
+  final List<int> selectedScheduleDays;
+  final ValueChanged<List<int>> onScheduleDaysChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -148,6 +153,13 @@ class AddHabitFormContent extends StatelessWidget {
             errorText: frequencyError,
             onSelected: onFrequencyChanged,
           ),
+          if (selectedFrequency == HabitFrequency.custom) ...[
+            const SizedBox(height: AppSpacing.lg),
+            WeekdayPicker(
+              selectedDays: selectedScheduleDays,
+              onChanged: onScheduleDaysChanged,
+            ),
+          ],
         ],
       ),
     );
