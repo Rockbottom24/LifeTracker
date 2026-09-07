@@ -50,43 +50,27 @@ class LearningProvider extends ChangeNotifier {
   }
 
   Future<void> loadSessions() async {
-    final hadCachedData = sessions.isNotEmpty;
-    isLoading = !hadCachedData;
-    isRefreshing = hadCachedData;
-    if (!hadCachedData) {
-      errorMessage = null;
-    }
+    isLoading = false;
+    isRefreshing = false;
+    errorMessage = null;
 
     sessions = _service.getSessionsLocal();
     _refreshSyncState();
     notifyListeners();
 
+    _syncWithServerInBackground();
+  }
+
+  void _syncWithServerInBackground() async {
     try {
       await _service.syncWithServer();
       sessions = _service.getSessionsLocal();
       _refreshSyncState();
       errorMessage = null;
-    } on ApiException catch (e) {
-      if (sessions.isEmpty) {
-        errorMessage = e.message;
-        syncMessage = null;
-        isOffline = false;
-      } else {
-        _refreshSyncState(networkUnavailable: true);
-        errorMessage = null;
-      }
-    } catch (e) {
-      if (sessions.isEmpty) {
-        errorMessage = e.toString();
-        syncMessage = null;
-        isOffline = false;
-      } else {
-        _refreshSyncState(networkUnavailable: true);
-        errorMessage = null;
-      }
-    } finally {
-      isLoading = false;
-      isRefreshing = false;
+      notifyListeners();
+    } catch (_) {
+      _refreshSyncState(networkUnavailable: true);
+      errorMessage = null;
       notifyListeners();
     }
   }

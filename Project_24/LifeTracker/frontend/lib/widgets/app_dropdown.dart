@@ -5,7 +5,7 @@ import '../theme/app_spacing.dart';
 class AppDropdown<T> extends StatelessWidget {
   const AppDropdown({
     super.key,
-    required this.label,
+    this.label,
     required this.value,
     required this.items,
     required this.onChanged,
@@ -13,7 +13,7 @@ class AppDropdown<T> extends StatelessWidget {
     this.errorText,
   });
 
-  final String label;
+  final String? label;
   final T? value;
   final List<DropdownMenuItem<T>> items;
   final ValueChanged<T?> onChanged;
@@ -27,11 +27,13 @@ class AppDropdown<T> extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: AppSpacing.sm),
+        if (label != null && label!.isNotEmpty) ...[
+          Text(
+            label!,
+            style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+        ],
         DropdownButtonFormField<T>(
           key: ValueKey(value),
           initialValue: value,

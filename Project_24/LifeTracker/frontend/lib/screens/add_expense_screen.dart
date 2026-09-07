@@ -37,6 +37,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   final _descriptionController = TextEditingController();
   final _notesController = TextEditingController();
 
+  late ExpenseType _selectedExpenseType;
   String? _selectedCategory;
   String? _selectedPaymentMode;
   String? _categoryError;
@@ -48,11 +49,13 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   @override
   void initState() {
     super.initState();
+    _selectedExpenseType = widget.expenseType;
     _prefill(widget.expense);
   }
 
   void _prefill(ExpenseResponse? expense) {
     if (expense == null) return;
+    _selectedExpenseType = expense.expenseType;
     _titleController.text = expense.title;
     _amountController.text = expense.amount.toStringAsFixed(2);
     _descriptionController.text = expense.description ?? '';
@@ -109,7 +112,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       final ok = await provider.updateExpense(
         widget.expense!.id,
         UpdateExpenseRequest(
-          expenseType: widget.expense!.expenseType,
+          expenseType: _selectedExpenseType,
           category: _selectedCategory!,
           title: _titleController.text.trim(),
           description: description.isEmpty ? null : description,
@@ -130,7 +133,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
     final created = await provider.createExpense(
       CreateExpenseRequest(
-        expenseType: widget.expenseType,
+        expenseType: _selectedExpenseType,
         category: _selectedCategory!,
         title: _titleController.text.trim(),
         description: description.isEmpty ? null : description,
@@ -146,6 +149,123 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       return;
     }
     setState(() => _successMessage = '"${created.title}" created successfully');
+  }
+
+  Future<void> _showAddCategoryDialog() async {
+    final textController = TextEditingController();
+    final newCategory = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Add Custom Category'),
+        content: TextField(
+          controller: textController,
+          autofocus: true,
+          textCapitalization: TextCapitalization.words,
+          decoration: InputDecoration(
+            hintText: 'e.g. Subscriptions, Books, Fuel',
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, textController.text.trim()),
+            child: const Text('Add'),
+          ),
+        ],
+      ),
+    );
+
+    if (newCategory == null || newCategory.isEmpty) return;
+
+    final provider = context.read<ExpenseProvider>();
+    final ok = await provider.addCategory(newCategory);
+    if (!mounted) return;
+    if (ok) {
+      setState(() {
+        _selectedCategory = newCategory;
+        _categoryError = null;
+      });
+      SnackBarUtils.showMessage(context, 'Category "$newCategory" added');
+    } else {
+      SnackBarUtils.showError(context, 'Category already exists or invalid');
+    }
+  }
+
+  Future<void> _showRemoveCategoryDialog() async {
+    final provider = context.read<ExpenseProvider>();
+    await showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final currentCategories = provider.categories;
+            return Container(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Remove Category',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Tap the delete icon to remove a category from your selection list:',
+                    style: TextStyle(fontSize: 13, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 16),
+                  Flexible(
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: currentCategories.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final cat = currentCategories[index];
+                        return ListTile(
+                          title: Text(cat, style: const TextStyle(fontWeight: FontWeight.w500)),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.delete_outline, color: Colors.red),
+                            onPressed: () async {
+                              final ok = await provider.removeCategory(cat);
+                              if (ok) {
+                                setModalState(() {});
+                                if (_selectedCategory == cat) {
+                                  setState(() {
+                                    _selectedCategory = provider.categories.isNotEmpty ? provider.categories.first : null;
+                                  });
+                                }
+                              }
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -165,10 +285,10 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
         },
         children: [
           SectionTitle(
-            title: _isEditMode ? 'Update expense' : widget.expenseType.listTitle,
+            title: _isEditMode ? 'Update expense' : _selectedExpenseType.listTitle,
             subtitle: _isEditMode
                 ? 'Update the details for this expense.'
-                : 'Record a new ${widget.expenseType.shortLabel.toLowerCase()} expense.',
+                : 'Record a new ${_selectedExpenseType.shortLabel.toLowerCase()} expense.',
           ),
           const SizedBox(height: AppSpacing.sectionGap),
           AddExpenseFormContent(
@@ -176,16 +296,23 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
             amountController: _amountController,
             descriptionController: _descriptionController,
             notesController: _notesController,
+            selectedExpenseType: _selectedExpenseType,
             selectedCategory: _selectedCategory,
             selectedPaymentMode: _selectedPaymentMode,
             categoryError: _categoryError,
             expenseDate: _expenseDate,
+            categories: provider.categories,
+            onExpenseTypeChanged: (type) => setState(() {
+              if (type != null) _selectedExpenseType = type;
+            }),
             onCategoryChanged: (value) => setState(() {
               _selectedCategory = value;
               _categoryError = null;
             }),
             onPaymentModeChanged: (value) => setState(() => _selectedPaymentMode = value),
             onPickDate: _pickDate,
+            onAddCategory: _showAddCategoryDialog,
+            onRemoveCategory: _showRemoveCategoryDialog,
           ),
           const SizedBox(height: AppSpacing.sectionGap),
           PrimaryButton(

@@ -90,20 +90,17 @@ class MonthlyComparison {
   const MonthlyComparison({
     required this.total,
     required this.personal,
-    required this.sharedLiving,
     required this.family,
   });
 
   final ComparisonMetric total;
   final ComparisonMetric personal;
-  final ComparisonMetric sharedLiving;
   final ComparisonMetric family;
 
   factory MonthlyComparison.fromJson(Map<String, dynamic> json) {
     return MonthlyComparison(
       total: ComparisonMetric.fromJson(Map<String, dynamic>.from(json['total'] as Map)),
       personal: ComparisonMetric.fromJson(Map<String, dynamic>.from(json['personal'] as Map)),
-      sharedLiving: ComparisonMetric.fromJson(Map<String, dynamic>.from(json['sharedLiving'] as Map)),
       family: ComparisonMetric.fromJson(Map<String, dynamic>.from(json['family'] as Map)),
     );
   }
@@ -113,7 +110,6 @@ class ExpenseDashboardResponse {
   const ExpenseDashboardResponse({
     required this.totalSpentThisMonth,
     required this.personalSpentThisMonth,
-    required this.sharedLivingSpentThisMonth,
     required this.familySpentThisMonth,
     required this.monthlyTrend,
     required this.categoryBreakdown,
@@ -124,7 +120,6 @@ class ExpenseDashboardResponse {
 
   final double totalSpentThisMonth;
   final double personalSpentThisMonth;
-  final double sharedLivingSpentThisMonth;
   final double familySpentThisMonth;
   final List<MonthlyTrendPoint> monthlyTrend;
   final List<CategoryBreakdownItem> categoryBreakdown;
@@ -136,7 +131,6 @@ class ExpenseDashboardResponse {
     return ExpenseDashboardResponse(
       totalSpentThisMonth: _toDouble(json['totalSpentThisMonth']),
       personalSpentThisMonth: _toDouble(json['personalSpentThisMonth']),
-      sharedLivingSpentThisMonth: _toDouble(json['sharedLivingSpentThisMonth']),
       familySpentThisMonth: _toDouble(json['familySpentThisMonth']),
       monthlyTrend: (json['monthlyTrend'] as List<dynamic>?)
               ?.whereType<Map>()

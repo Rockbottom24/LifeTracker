@@ -14,8 +14,8 @@ class ApiConstants {
   static const String userEmailKey = 'user_email';
   static const String userDisplayNameKey = 'user_display_name';
   static const String userHouseKey = 'user_house_key';
-  static const Duration connectTimeout = Duration(seconds: 10);
-  static const Duration receiveTimeout = Duration(seconds: 15);
+  static const Duration connectTimeout = Duration(seconds: 3);
+  static const Duration receiveTimeout = Duration(seconds: 5);
 
   static String normalizeBaseUrl(String? value) {
     final trimmed = (value ?? '').trim();

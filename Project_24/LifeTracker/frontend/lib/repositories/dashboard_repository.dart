@@ -11,7 +11,8 @@ class DashboardRepository {
   DashboardResponse buildLocal() {
     final habits = _offlineStore.getVisibleHabits();
     final completedIds = _cache.getCompletedTodayHabitIds();
-    final activeHabits = habits.where((item) => item.habit.isActive).toList();
+    final now = DateTime.now();
+    final activeHabits = habits.where((item) => item.habit.isActive && item.habit.isScheduledForDate(now)).toList();
     final total = activeHabits.length;
     final completed = activeHabits.where((item) => completedIds.contains(item.habit.id)).length;
     final pending = (total - completed).clamp(0, total);
@@ -37,8 +38,9 @@ class DashboardRepository {
       houseDisplayName: houseDisplayName,
       welcomeTitle: cached?.welcomeTitle ?? 'Welcome, $firstName',
       welcomeSubtitle: cached?.welcomeSubtitle ?? 'of House $houseDisplayName',
-      dayStatusMessage: cached?.dayStatusMessage ??
-          (earnedPoints == 0 && completed == 0 ? 'The day is unwritten.' : 'The chronicle continues.'),
+      dayStatusMessage: (cached?.dayStatusMessage != null && !cached!.dayStatusMessage!.toLowerCase().contains('unwritten'))
+          ? cached.dayStatusMessage
+          : 'Your chronicle continues.',
       summary: DashboardSummary(
         totalHabits: total,
         completedHabits: completed,

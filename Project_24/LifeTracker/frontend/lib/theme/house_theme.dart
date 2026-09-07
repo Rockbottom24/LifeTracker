@@ -22,6 +22,31 @@ class HouseTheme {
   String get displayName => 'House $name';
   String get profileLabel => name;
 
+  List<String> get characters {
+    switch (key.toLowerCase()) {
+      case 'stark':
+        return ['Jon Snow', 'Ned Stark', 'Arya Stark', 'Sansa Stark', 'Robb Stark', 'Bran Stark'];
+      case 'targaryen':
+        return ['Daenerys Targaryen', 'Aegon Targaryen', 'Daemon Targaryen', 'Viserys Targaryen', 'Rhaenyra Targaryen'];
+      case 'lannister':
+        return ['Tyrion Lannister', 'Jaime Lannister', 'Cersei Lannister', 'Tywin Lannister'];
+      case 'baratheon':
+        return ['Robert Baratheon', 'Stannis Baratheon', 'Renly Baratheon'];
+      case 'tyrell':
+        return ['Margaery Tyrell', 'Olenna Tyrell', 'Loras Tyrell'];
+      case 'greyjoy':
+        return ['Yara Greyjoy', 'Theon Greyjoy', 'Euron Greyjoy'];
+      case 'martell':
+        return ['Oberyn Martell', 'Doran Martell', 'Ellaria Sand'];
+      case 'arryn':
+        return ['Jon Arryn', 'Lysa Arryn', 'Robin Arryn'];
+      case 'tully':
+        return ['Catelyn Stark', 'Brynden Tully', 'Edmure Tully'];
+      default:
+        return ['Jon Snow', 'Ned Stark', 'Arya Stark'];
+    }
+  }
+
   static const HouseTheme stark = HouseTheme(
     key: 'stark',
     name: 'Stark',

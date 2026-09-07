@@ -106,4 +106,15 @@ class WorkoutService {
       },
     );
   }
+
+  Future<WorkoutScheduleModel> assignWorkoutToDate(int? templateId, DateTime targetDate) async {
+    return _apiClient.post<WorkoutScheduleModel>(
+      '/workouts/schedule/assign',
+      data: {
+        'templateId': templateId,
+        'date': targetDate.toIso8601String().split('T')[0],
+      },
+      parser: (data) => WorkoutScheduleModel.fromJson(Map<String, dynamic>.from(data as Map)),
+    );
+  }
 }

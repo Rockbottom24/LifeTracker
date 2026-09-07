@@ -12,13 +12,11 @@ class ExpenseUiUtils {
 
   static IconData iconForType(ExpenseType type) => switch (type) {
         ExpenseType.personal => Icons.account_balance_wallet_outlined,
-        ExpenseType.sharedLiving => Icons.home_work_outlined,
         ExpenseType.family => Icons.family_restroom_outlined,
       };
 
   static Color colorForType(ExpenseType type, ColorScheme scheme) => switch (type) {
         ExpenseType.personal => scheme.primary,
-        ExpenseType.sharedLiving => scheme.tertiary,
         ExpenseType.family => scheme.secondary,
       };
 
@@ -26,10 +24,6 @@ class ExpenseUiUtils {
         ExpenseType.personal => [
             scheme.primary.withValues(alpha: 0.92),
             scheme.primaryContainer.withValues(alpha: 0.88),
-          ],
-        ExpenseType.sharedLiving => [
-            scheme.tertiary.withValues(alpha: 0.92),
-            scheme.tertiaryContainer.withValues(alpha: 0.88),
           ],
         ExpenseType.family => [
             scheme.secondary.withValues(alpha: 0.92),

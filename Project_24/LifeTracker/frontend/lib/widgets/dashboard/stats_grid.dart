@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../models/dashboard_response.dart';
+import '../../services/user_xp_manager.dart';
 import '../../theme/app_spacing.dart';
 import '../animated_counter.dart';
-import '../app_card.dart';
 import '../fade_in_section.dart';
+import '../glass_card.dart';
 
 class StatsGrid extends StatelessWidget {
   const StatsGrid({
@@ -17,75 +18,125 @@ class StatsGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final experience = (summary.completedHabits * 120) + (summary.totalHabits * 35) + (summary.currentStreak * 45);
-    final level = (experience ~/ 500) + 1;
-    final rank = _rankForLevel(level);
+    const goldColor = Color(0xFFC4B28B);
 
-    final items = [
-      _StatItem(title: 'Honor Points', value: summary.earnedPoints, suffix: ' / ${summary.possiblePoints}'),
-      _StatItem(title: 'Experience', value: experience, suffix: ' XP'),
-      _StatItem(title: 'Level', value: level),
-      _StatItem(title: 'Rank', value: rank, isText: true),
-      _StatItem(title: 'Completed Today', value: summary.completedHabits),
-      _StatItem(title: 'Daily Quests', value: summary.totalHabits),
-    ];
+    return FutureBuilder<int>(
+      future: UserXpManager.getXp(),
+      builder: (context, snapshot) {
+        final totalXp = (snapshot.data ?? 0) + (summary.completedHabits * 120);
+        final level = UserXpManager.getLevel(totalXp);
+        final rank = UserXpManager.getRank(level);
+        final formattedXp = UserXpManager.formatXp(totalXp);
 
-    return FadeInSection(
-      index: 5,
-      child: GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: items.length,
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: MediaQuery.sizeOf(context).width >= 720 ? 3 : 2,
-          crossAxisSpacing: AppSpacing.md,
-          mainAxisSpacing: AppSpacing.md,
-          childAspectRatio: 1.35,
-        ),
-        itemBuilder: (context, index) {
-          final item = items[index];
-          return AppCard(
-            elevation: 1,
-            padding: const EdgeInsets.all(AppSpacing.md),
-            margin: EdgeInsets.zero,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  item.title,
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                if (item.isText)
-                  Text(
-                    item.value.toString(),
-                    style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
-                  )
-                else
-                  AnimatedCounter(
-                    value: item.value as num,
-                    suffix: item.suffix,
-                    style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
-                  ),
-              ],
+        final items = [
+          _StatItem(
+            title: 'Honor Points',
+            value: summary.earnedPoints,
+            suffix: ' / ${summary.possiblePoints}',
+            icon: Icons.shield_rounded,
+          ),
+          _StatItem(
+            title: 'Experience',
+            value: '$formattedXp XP',
+            isText: true,
+            icon: Icons.auto_awesome_rounded,
+          ),
+          _StatItem(
+            title: 'Level',
+            value: level,
+            icon: Icons.military_tech_rounded,
+          ),
+          _StatItem(
+            title: 'Rank',
+            value: rank,
+            isText: true,
+            icon: Icons.workspace_premium_rounded,
+          ),
+          _StatItem(
+            title: 'Completed Today',
+            value: summary.completedHabits,
+            icon: Icons.check_circle_rounded,
+          ),
+          _StatItem(
+            title: 'Daily Quests',
+            value: summary.totalHabits,
+            icon: Icons.format_list_bulleted_rounded,
+          ),
+        ];
+
+        return FadeInSection(
+          index: 5,
+          child: GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: items.length,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: MediaQuery.sizeOf(context).width >= 720 ? 3 : 2,
+              crossAxisSpacing: AppSpacing.md,
+              mainAxisSpacing: AppSpacing.md,
+              childAspectRatio: 1.2,
             ),
-          );
-        },
-      ),
+            itemBuilder: (context, index) {
+              final item = items[index];
+              return GlassCard(
+                padding: const EdgeInsets.all(12),
+                margin: EdgeInsets.zero,
+                borderColor: goldColor.withValues(alpha: 0.22),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            item.title,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Icon(item.icon, size: 16, color: goldColor),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    if (item.isText)
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          item.value.toString(),
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                          ),
+                        ),
+                      )
+                    else
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: AnimatedCounter(
+                          value: item.value as num,
+                          suffix: item.suffix,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
-  }
-
-  String _rankForLevel(int level) {
-    if (level >= 20) return 'King';
-    if (level >= 16) return 'Hand of the King';
-    if (level >= 12) return 'Warden';
-    if (level >= 8) return 'Lord';
-    if (level >= 5) return 'Knight';
-    if (level >= 3) return 'Squire';
-    return 'Smallfolk';
   }
 }
 
@@ -95,10 +146,12 @@ class _StatItem {
     required this.value,
     this.suffix = '',
     this.isText = false,
+    required this.icon,
   });
 
   final String title;
-  final Object value;
+  final dynamic value;
   final String suffix;
   final bool isText;
+  final IconData icon;
 }

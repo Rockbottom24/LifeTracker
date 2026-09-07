@@ -197,4 +197,8 @@ class LocalCacheStore {
     await box.put(key, jsonEncode(items.map(toJson).toList()));
     await _setLastSynced(entity);
   }
+
+  Future<void> clearAllUserData() async {
+    await box.clear();
+  }
 }

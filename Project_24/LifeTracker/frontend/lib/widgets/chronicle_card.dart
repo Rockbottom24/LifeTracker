@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../theme/app_spacing.dart';
 import '../../theme/house_theme.dart';
+import 'glass_card.dart';
 
-/// Shared dark chronicle surface with restrained gold accents.
+/// Shared dark chronicle surface with restrained gold accents and glassmorphism.
 class ChronicleCard extends StatelessWidget {
   const ChronicleCard({
     super.key,
@@ -18,36 +19,15 @@ class ChronicleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     const gold = Color(0xFFC4B28B);
 
-    final content = Container(
-      width: double.infinity,
+    return GlassCard(
       padding: padding ?? const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(22),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            theme.colorScheme.surfaceContainerLow,
-            theme.colorScheme.surfaceContainer.withValues(alpha: 0.95),
-          ],
-        ),
-        border: Border.all(color: gold.withValues(alpha: 0.22)),
-      ),
+      borderRadius: 24,
+      onTap: onTap,
+      borderColor: gold.withValues(alpha: 0.3),
+      borderWidth: 1.2,
       child: child,
-    );
-
-    if (onTap == null) return content;
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(22),
-        onTap: onTap,
-        child: content,
-      ),
     );
   }
 }

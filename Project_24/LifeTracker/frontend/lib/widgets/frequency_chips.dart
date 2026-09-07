@@ -30,7 +30,9 @@ class FrequencyChips extends StatelessWidget {
         Wrap(
           spacing: AppSpacing.sm,
           runSpacing: AppSpacing.sm,
-          children: HabitFrequency.values.map((frequency) {
+          children: HabitFrequency.values
+              .where((frequency) => frequency != HabitFrequency.weekly)
+              .map((frequency) {
             final isSelected = selected == frequency;
 
             return AnimatedScale(

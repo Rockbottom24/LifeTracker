@@ -44,6 +44,22 @@ class MealItemResponse {
     );
   }
 
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'foodItemId': foodItemId,
+      'foodName': foodName,
+      'quantity': quantity,
+      'unit': unit.apiValue,
+      'calories': calories,
+      'protein': protein,
+      'carbs': carbs,
+      'fat': fat,
+      'fiber': fiber,
+      'displayOrder': displayOrder,
+    };
+  }
+
   static int? _toInt(dynamic value) {
     if (value is num) return value.toInt();
     return int.tryParse(value?.toString() ?? '');
@@ -102,6 +118,22 @@ class MealResponse {
       totalFat: _toDouble(json['totalFat']),
       totalFiber: _toDouble(json['totalFiber']),
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'uuid': uuid,
+      'mealType': mealType.apiValue,
+      'mealDate': mealDate.toIso8601String(),
+      'notes': notes,
+      'items': items.map((i) => i.toJson()).toList(),
+      'totalCalories': totalCalories,
+      'totalProtein': totalProtein,
+      'totalCarbs': totalCarbs,
+      'totalFat': totalFat,
+      'totalFiber': totalFiber,
+    };
   }
 
   static int? _toInt(dynamic value) {

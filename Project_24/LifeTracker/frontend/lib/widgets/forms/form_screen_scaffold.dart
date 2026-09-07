@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-
+import 'package:provider/provider.dart';
+import '../../providers/local_auth_provider.dart';
 import '../../theme/app_spacing.dart';
+import '../house_ambient_background.dart';
 import '../responsive_form_container.dart';
 import '../save_success_overlay.dart';
 
@@ -24,7 +26,10 @@ class FormScreenScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
+    final auth = context.watch<LocalAuthProvider>();
+    return HouseAmbientBackground(
+      houseKeyOverride: auth.houseKey,
+      child: Stack(
       children: [
         SafeArea(
           child: GestureDetector(
@@ -61,6 +66,7 @@ class FormScreenScaffold extends StatelessWidget {
             ),
           ),
       ],
-    );
-  }
+    ),
+  );
+}
 }

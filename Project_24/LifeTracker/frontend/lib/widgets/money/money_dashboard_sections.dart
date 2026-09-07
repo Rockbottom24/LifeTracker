@@ -120,8 +120,6 @@ class MoneyComparisonSection extends StatelessWidget {
             const SizedBox(height: AppSpacing.md),
             _ComparisonRow(label: 'Personal', metric: comparison.personal),
             const SizedBox(height: AppSpacing.md),
-            _ComparisonRow(label: 'Shared Living', metric: comparison.sharedLiving),
-            const SizedBox(height: AppSpacing.md),
             _ComparisonRow(label: 'Family', metric: comparison.family),
           ],
         ),

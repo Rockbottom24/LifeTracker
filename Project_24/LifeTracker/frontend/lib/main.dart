@@ -6,14 +6,16 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'database/app_database.dart';
 import 'local/local_cache_store.dart';
 import 'local/offline_data_store.dart';
 import 'navigation/auth_gate.dart';
-import 'providers/auth_provider.dart';
+import 'providers/local_auth_provider.dart';
 import 'providers/dashboard_provider.dart';
 import 'providers/expense_provider.dart';
 import 'providers/food_provider.dart';
 import 'providers/habit_provider.dart';
+import 'providers/journal_provider.dart';
 import 'providers/learning_provider.dart';
 import 'providers/meal_provider.dart';
 import 'providers/workout_provider.dart';
@@ -22,12 +24,13 @@ import 'repositories/habit_repository.dart';
 import 'repositories/learning_repository.dart';
 import 'services/api_client.dart';
 import 'services/api_constants.dart';
-import 'services/auth_service.dart';
 import 'services/auth_token_store.dart';
 import 'services/dashboard_service.dart';
 import 'services/expense_service.dart';
 import 'services/food_service.dart';
+import 'services/google_auth_service.dart';
 import 'services/habit_service.dart';
+import 'services/journal_service.dart';
 import 'services/learning_service.dart';
 import 'services/meal_service.dart';
 import 'services/nutrition_service.dart';
@@ -38,6 +41,7 @@ import 'sync/sync_engine.dart';
 import 'theme/app_style.dart';
 import 'theme/app_theme.dart';
 import 'theme/theme_provider.dart';
+import 'widgets/house_ambient_background.dart';
 
 Future<void> main() async {
   runZonedGuarded(() async {
@@ -71,33 +75,45 @@ Future<void> main() async {
     };
 
     final sharedPreferences = await SharedPreferences.getInstance();
-    const cliBaseUrl = String.fromEnvironment('API_BASE_URL');
-    if (cliBaseUrl.isNotEmpty) {
-      await sharedPreferences.setString(ApiConstants.baseUrlKey, ApiConstants.resolveBaseUrl(cliBaseUrl));
-    } else {
-      final storedBaseUrl = sharedPreferences.getString(ApiConstants.baseUrlKey);
-      if (storedBaseUrl == null ||
-          storedBaseUrl.isEmpty ||
-          ApiConstants.shouldResetLegacyBaseUrl(storedBaseUrl)) {
-        await sharedPreferences.setString(ApiConstants.baseUrlKey, ApiConstants.defaultBaseUrl);
-      }
-    }
 
+    // ── Local SQLite database (Drift) ─────────────────────────────────────────
+    final appDatabase = AppDatabase();
+
+    // ── Hive cache (kept for habit completion cache etc.) ─────────────────────
     final cache = LocalCacheStore.instance;
     await cache.init();
 
     final offlineStore = OfflineDataStore(cache);
     await offlineStore.ensureMigrated();
 
-    final tokenStore = AuthTokenStore(sharedPreferences: sharedPreferences);
+    // ── Google Auth (no server needed) ────────────────────────────────────────
+    final googleAuthService = GoogleAuthService(database: appDatabase);
+    final localAuthProvider = LocalAuthProvider(
+      googleAuthService: googleAuthService,
+      database: appDatabase,
+    );
 
+    // ── Legacy server stack (kept during migration) ───────────────────────────
+    const cliBaseUrl = String.fromEnvironment('API_BASE_URL');
+    if (cliBaseUrl.isNotEmpty) {
+      await sharedPreferences.setString(
+          ApiConstants.baseUrlKey, ApiConstants.resolveBaseUrl(cliBaseUrl));
+    } else {
+      final storedBaseUrl = sharedPreferences.getString(ApiConstants.baseUrlKey);
+      if (storedBaseUrl == null ||
+          storedBaseUrl.isEmpty ||
+          ApiConstants.shouldResetLegacyBaseUrl(storedBaseUrl)) {
+        await sharedPreferences.setString(
+            ApiConstants.baseUrlKey, ApiConstants.defaultBaseUrl);
+      }
+    }
+
+    final tokenStore = AuthTokenStore(sharedPreferences: sharedPreferences);
     final apiClient = DioApiClient(
       tokenStore: tokenStore,
       sharedPreferences: sharedPreferences,
     );
     await apiClient.initialize();
-
-    final authService = AuthService(apiClient: apiClient, tokenStore: tokenStore);
 
     final habitRepository = HabitRepository(offlineStore);
     final learningRepository = LearningRepository(offlineStore);
@@ -130,36 +146,39 @@ Future<void> main() async {
     );
     final expenseService = ExpenseService(apiClient: apiClient);
     final foodService = FoodService(apiClient: apiClient);
+    final journalService = JournalService();
     final mealService = MealService(apiClient: apiClient);
     final nutritionService = NutritionService(apiClient: apiClient);
     final profileService = ProfileService(apiClient: apiClient);
     final workoutService = WorkoutService(apiClient: apiClient);
 
-    final authProvider = AuthProvider(
-      tokenStore: tokenStore,
-      authService: authService,
-      apiClient: apiClient,
-    );
-
     runApp(
       MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => ThemeProvider(sharedPreferences)..load()),
-          ChangeNotifierProvider.value(value: authProvider),
+          // ── New local auth (Google Sign-In) ──────────────────────────────
+          ChangeNotifierProvider.value(value: localAuthProvider),
+          // ── Google Auth Service (for Drive backup in Settings) ────────────
+          Provider.value(value: googleAuthService),
+          // ── Existing providers (server-backed, kept during migration) ────
           Provider.value(value: profileService),
           ChangeNotifierProvider(create: (_) => DashboardProvider(dashboardService, cache)),
           ChangeNotifierProvider(create: (_) => HabitProvider(habitService, cache)),
           ChangeNotifierProvider(create: (_) => LearningProvider(learningService, cache)),
           ChangeNotifierProvider(create: (_) => ExpenseProvider(expenseService)),
           ChangeNotifierProvider(create: (_) => FoodProvider(foodService)),
+          ChangeNotifierProvider(create: (_) => JournalProvider(journalService)),
           ChangeNotifierProvider(create: (_) => MealProvider(mealService, nutritionService)),
           ChangeNotifierProvider(create: (_) => WorkoutProvider(workoutService)),
         ],
-        child: LifeTrackerApp(apiClient: apiClient, syncEngine: syncEngine, authProvider: authProvider),
+        child: LifeTrackerApp(
+          syncEngine: syncEngine,
+          localAuthProvider: localAuthProvider,
+        ),
       ),
     );
 
-    await authProvider.initialize();
+    await localAuthProvider.initialize();
   }, (error, stack) {
     debugPrint('Fatal startup error: $error');
     debugPrint(stack.toString());
@@ -168,15 +187,13 @@ Future<void> main() async {
 
 class LifeTrackerApp extends StatefulWidget {
   const LifeTrackerApp({
-    required this.apiClient,
     required this.syncEngine,
-    required this.authProvider,
+    required this.localAuthProvider,
     super.key,
   });
 
-  final DioApiClient apiClient;
   final SyncEngine syncEngine;
-  final AuthProvider authProvider;
+  final LocalAuthProvider localAuthProvider;
 
   @override
   State<LifeTrackerApp> createState() => _LifeTrackerAppState();
@@ -201,7 +218,7 @@ class _LifeTrackerAppState extends State<LifeTrackerApp> {
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
-    final auth = context.watch<AuthProvider>();
+    final auth = context.watch<LocalAuthProvider>();
     final style = themeProvider.style;
 
     return MaterialApp(
@@ -209,15 +226,13 @@ class _LifeTrackerAppState extends State<LifeTrackerApp> {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme(style: style, houseKey: auth.houseKey),
       darkTheme: AppTheme.darkTheme(style: style, houseKey: auth.houseKey),
-      themeMode: switch (style) {
-        AppStyle.classic => ThemeMode.light,
-        AppStyle.fantasy => ThemeMode.dark,
-        AppStyle.system => ThemeMode.system,
+      builder: (context, child) {
+        return HouseAmbientBackground(
+          houseKeyOverride: auth.houseKey,
+          child: child ?? const SizedBox.shrink(),
+        );
       },
-      home: AuthGate(
-        apiClient: widget.apiClient,
-        syncEngine: widget.syncEngine,
-      ),
+      home: AuthGate(syncEngine: widget.syncEngine),
     );
   }
 }

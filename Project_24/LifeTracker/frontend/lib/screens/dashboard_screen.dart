@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/dashboard_response.dart';
 import '../navigation/add_habit_page_route.dart';
 import '../navigation/app_navigator.dart';
-import '../providers/auth_provider.dart';
+import '../providers/local_auth_provider.dart';
 import '../providers/dashboard_provider.dart';
 import '../providers/habit_provider.dart';
 import '../providers/learning_provider.dart';
@@ -31,7 +31,10 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends State<DashboardScreen> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   @override
   void initState() {
     super.initState();
@@ -47,9 +50,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _completeHabit(int habitId) async {
+    final auth = context.read<LocalAuthProvider>();
+    final house = auth.house;
     await context.read<HabitProvider>().completeHabit(habitId);
     if (mounted) {
       await context.read<DashboardProvider>().loadDashboard();
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Text(house.sigil, style: const TextStyle(fontSize: 20)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Quest Sealed for House ${house.name}! "${house.motto}"',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: house.bannerGradient[1],
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: house.accent.withValues(alpha: 0.6)),
+          ),
+          duration: const Duration(milliseconds: 2200),
+        ),
+      );
     }
   }
 
@@ -85,10 +114,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final dashboardProvider = context.watch<DashboardProvider>();
     final habitProvider = context.watch<HabitProvider>();
     final learningProvider = context.watch<LearningProvider>();
-    final auth = context.watch<AuthProvider>();
+    final auth = context.watch<LocalAuthProvider>();
     final dashboard = dashboardProvider.dashboard;
 
     return Scaffold(
@@ -96,18 +126,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         title: const Text('The Realm'),
         actions: [
           IconButton(
-            onPressed: dashboardProvider.isLoading ? null : _refresh,
-            icon: const Icon(Icons.refresh_outlined),
-          ),
-          IconButton(
-            tooltip: 'Profile',
+            tooltip: 'Profile & Settings',
             onPressed: _openProfile,
             icon: const Icon(Icons.person_outline),
-          ),
-          IconButton(
-            tooltip: 'Logout',
-            onPressed: () => context.read<AuthProvider>().logout(),
-            icon: const Icon(Icons.logout_outlined),
           ),
         ],
       ),
@@ -124,7 +145,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     DashboardProvider dashboardProvider,
     HabitProvider habitProvider,
     LearningProvider learningProvider,
-    AuthProvider auth,
+    LocalAuthProvider auth,
     DashboardResponse? dashboard,
   ) {
     if (dashboardProvider.isLoading && dashboard == null) {
@@ -153,27 +174,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final viewData = DashboardViewDataMapper.from(
       response: dashboard,
       habits: habitProvider.habits,
+      userDisplayName: auth.displayName,
+      houseName: auth.house.name,
     );
     final house = auth.house;
 
-    if (viewData.summary.totalHabits == 0 &&
-        habitProvider.habits.isEmpty &&
-        learningProvider.sessions.isEmpty) {
-      return ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        children: [
-          ChronicleEmptyState(
-            house: house,
-            title: viewData.welcomeTitle,
-            message:
-                '${viewData.welcomeSubtitle}\n\n${viewData.dayStatusMessage}\n\nBegin your first quest to write today\'s chronicle.',
-            actionLabel: 'Create Habit',
-            onAction: _openCreateHabit,
-          ),
-        ],
-      );
-    }
+
 
     final isTablet = MediaQuery.sizeOf(context).width >= 720;
 
@@ -181,13 +187,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
-        OfflineSyncBanner(
-          isOffline: dashboardProvider.isOffline,
-          syncMessage: dashboardProvider.syncMessage,
-          lastSyncedAt: dashboardProvider.lastSyncedAt,
-          isRefreshing: dashboardProvider.isRefreshing,
-          hasPendingSync: dashboardProvider.hasPendingSync,
-        ),
         ResponsiveFormContainer(
           child: isTablet
               ? _buildTabletLayout(viewData, learningProvider, house)
@@ -218,20 +217,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         const SizedBox(height: AppSpacing.md),
         ProgressRingCard(summary: viewData.summary),
         const SizedBox(height: AppSpacing.md),
-        TodaysLearningSection(
-          sessions: learningProvider.todaySessions,
-          onQuickStart: (session) => _quickStartLearning(session.id),
-          onOpenDetails: _openLearningDetails,
-        ),
-        const SizedBox(height: AppSpacing.md),
         UpcomingReminderCard(reminder: viewData.upcomingReminder),
-        const SizedBox(height: AppSpacing.md),
-        TodaysHabitsSection(
-          habits: viewData.todayHabits,
-          onHabitTap: _openHabitDetails,
-          onComplete: _completeHabit,
-          onUndo: _undoHabit,
-        ),
         const SizedBox(height: AppSpacing.md),
         WeeklyProgressCard(days: viewData.weeklyProgress),
         const SizedBox(height: AppSpacing.md),
@@ -268,12 +254,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ],
         ),
         const SizedBox(height: AppSpacing.md),
-        TodaysLearningSection(
-          sessions: learningProvider.todaySessions,
-          onQuickStart: (session) => _quickStartLearning(session.id),
-          onOpenDetails: _openLearningDetails,
-        ),
-        const SizedBox(height: AppSpacing.md),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -281,13 +261,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(width: AppSpacing.md),
             Expanded(child: WeeklyProgressCard(days: viewData.weeklyProgress)),
           ],
-        ),
-        const SizedBox(height: AppSpacing.md),
-        TodaysHabitsSection(
-          habits: viewData.todayHabits,
-          onHabitTap: _openHabitDetails,
-          onComplete: _completeHabit,
-          onUndo: _undoHabit,
         ),
         const SizedBox(height: AppSpacing.md),
         StatsGrid(summary: viewData.summary),

@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../models/habit_response.dart';
 import '../models/learning_session_response.dart';
 import '../sync/sync_operation.dart';
@@ -20,8 +22,27 @@ class OfflineDataStore {
   static const _syncQueueKey = 'sync_queue';
   static const _localIdCounterKey = 'local_id_counter';
   static const _migrationKey = 'offline_migration_v1';
+  static const _spHabitsKey = 'offline_user_habits_store_v1';
 
   Future<void> ensureMigrated() async {
+    try {
+      final sp = await SharedPreferences.getInstance();
+      final spHabitsRaw = sp.getString(_spHabitsKey);
+      if (spHabitsRaw != null && spHabitsRaw.isNotEmpty && getStoredHabits().isEmpty) {
+        final decoded = jsonDecode(spHabitsRaw) as List<dynamic>;
+        final stored = decoded
+            .whereType<Map>()
+            .map((item) => StoredHabit.fromJson(Map<String, dynamic>.from(item)))
+            .toList();
+        if (stored.isNotEmpty) {
+          await _writeList(_storedHabitsKey, stored, (item) => item.toJson(), CacheEntity.habits);
+          await _mirrorLegacyHabits(stored);
+        }
+      }
+    } catch (e) {
+      AppLogger.debug('Error migrating habits from SharedPreferences: $e');
+    }
+
     if (_cache.box.get(_migrationKey) == 'done') return;
 
     final legacyHabits = _cache.getHabits();
@@ -57,6 +78,10 @@ class OfflineDataStore {
     await _cache.box.put(_migrationKey, 'done');
   }
 
+  Future<void> clearAllUserData() async {
+    await _cache.clearAllUserData();
+  }
+
   int nextLocalId() {
     final current = int.tryParse(_cache.box.get(_localIdCounterKey) ?? '') ?? 0;
     final next = current == 0 ? -1 : current - 1;
@@ -64,7 +89,21 @@ class OfflineDataStore {
     return next;
   }
 
-  List<StoredHabit> getStoredHabits() => _readList(_storedHabitsKey, StoredHabit.fromJson);
+  List<StoredHabit> getStoredHabits() {
+    final habits = _readList(_storedHabitsKey, StoredHabit.fromJson);
+    if (habits.isNotEmpty) return habits;
+    try {
+      final raw = _cache.box.get(_spHabitsKey);
+      if (raw != null && raw.isNotEmpty) {
+        final decoded = jsonDecode(raw) as List<dynamic>;
+        return decoded
+            .whereType<Map>()
+            .map((item) => StoredHabit.fromJson(Map<String, dynamic>.from(item)))
+            .toList();
+      }
+    } catch (_) {}
+    return habits;
+  }
 
   List<StoredHabit> getVisibleHabits() =>
       getStoredHabits().where((item) => item.syncStatus != SyncStatus.pendingDelete).toList();
@@ -72,6 +111,13 @@ class OfflineDataStore {
   Future<void> saveStoredHabits(List<StoredHabit> habits) async {
     await _writeList(_storedHabitsKey, habits, (item) => item.toJson(), CacheEntity.habits);
     await _mirrorLegacyHabits(habits);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final listMap = habits.map((e) => e.toJson()).toList();
+      await prefs.setString(_spHabitsKey, jsonEncode(listMap));
+    } catch (e) {
+      AppLogger.debug('Failed to write habits to SharedPreferences fallback: $e');
+    }
   }
 
   StoredHabit? findHabitByLocalKey(String localKey) {

@@ -4,8 +4,8 @@ import '../../models/macro_progress_item.dart';
 import '../../theme/app_spacing.dart';
 import '../../utils/meal_ui_utils.dart';
 import '../animated_counter.dart';
-import '../app_card.dart';
 import '../fade_in_section.dart';
+import '../glass_card.dart';
 
 class NutritionProgressRingsSection extends StatelessWidget {
   const NutritionProgressRingsSection({
@@ -17,11 +17,11 @@ class NutritionProgressRingsSection extends StatelessWidget {
 
   Color _colorForKey(String key, ColorScheme scheme) {
     return switch (key) {
-      'CALORIES' => scheme.primary,
-      'PROTEIN' => scheme.secondary,
-      'CARBS' => scheme.tertiary,
-      'FAT' => scheme.error,
-      'FIBER' => scheme.primaryContainer,
+      'CALORIES' => const Color(0xFFC4B28B),
+      'PROTEIN' => const Color(0xFF4CAF50),
+      'CARBS' => const Color(0xFF2196F3),
+      'FAT' => const Color(0xFFFF9800),
+      'FIBER' => const Color(0xFF9C27B0),
       _ => scheme.primary,
     };
   }
@@ -53,10 +53,10 @@ class NutritionProgressRingsSection extends StatelessWidget {
               final color = _colorForKey(item.key, theme.colorScheme);
               final ringProgress = (item.progressPercent / 100).clamp(0.0, 1.0);
 
-              return AppCard(
-                elevation: 1,
+              return GlassCard(
                 margin: EdgeInsets.zero,
                 padding: const EdgeInsets.all(AppSpacing.md),
+                borderColor: color.withValues(alpha: 0.35),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -77,14 +77,17 @@ class NutritionProgressRingsSection extends StatelessWidget {
                                 child: CircularProgressIndicator(
                                   value: value,
                                   strokeWidth: 7,
-                                  backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                                  backgroundColor: color.withValues(alpha: 0.15),
                                   color: color,
                                 ),
                               ),
                               AnimatedCounter(
                                 value: item.progressPercent.round(),
                                 suffix: '%',
-                                style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800),
+                                style: theme.textTheme.labelLarge?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                ),
                               ),
                             ],
                           );
@@ -96,7 +99,10 @@ class NutritionProgressRingsSection extends StatelessWidget {
                       item.label,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700),
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     Text(

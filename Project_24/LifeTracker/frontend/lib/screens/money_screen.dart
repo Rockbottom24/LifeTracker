@@ -21,7 +21,10 @@ class MoneyScreen extends StatefulWidget {
   State<MoneyScreen> createState() => _MoneyScreenState();
 }
 
-class _MoneyScreenState extends State<MoneyScreen> {
+class _MoneyScreenState extends State<MoneyScreen> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   @override
   void initState() {
     super.initState();
@@ -42,12 +45,121 @@ class _MoneyScreenState extends State<MoneyScreen> {
     }
   }
 
+  Future<void> _openAddTransaction() async {
+    await Navigator.of(context).push(
+      AddExpensePageRoute(
+        settings: const RouteSettings(name: '/add-expense/personal'),
+        expenseType: ExpenseType.personal,
+      ),
+    );
+    if (mounted) {
+      await context.read<ExpenseProvider>().refreshExpenseData();
+    }
+  }
+
+  void _showSetIncomeDialog(double currentIncome) {
+    final controller = TextEditingController(
+      text: currentIncome > 0 ? currentIncome.toStringAsFixed(0) : '',
+    );
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          actionsOverflowDirection: VerticalDirection.down,
+          actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          title: Row(
+            children: [
+              const Icon(Icons.savings_rounded, color: Color(0xFFC4B28B)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Set Monthly Income',
+                  style: Theme.of(dialogContext).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Enter total income received for this month to track remaining vault savings.',
+                  style: Theme.of(dialogContext).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(dialogContext).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: controller,
+                  keyboardType: TextInputType.number,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    labelText: 'Monthly Income (₹)',
+                    hintText: 'e.g. 50000',
+                    prefixText: '₹ ',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFC4B28B),
+                foregroundColor: Colors.black,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: () {
+                final val = double.tryParse(controller.text.trim()) ?? 0.0;
+                context.read<ExpenseProvider>().setMonthlyIncome(val);
+                Navigator.of(dialogContext).pop();
+              },
+              child: const Text('Save Income', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final provider = context.watch<ExpenseProvider>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Iron Bank')),
+      appBar: AppBar(
+        title: const Text('Iron Bank'),
+        actions: [
+          IconButton(
+            tooltip: 'Set Monthly Income',
+            icon: const Icon(Icons.account_balance_wallet_rounded, color: Color(0xFFC4B28B)),
+            onPressed: () => _showSetIncomeDialog(provider.monthlyIncome),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'iron_bank_main_fab',
+        onPressed: _openAddTransaction,
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('Add Transaction'),
+        backgroundColor: const Color(0xFFC4B28B),
+        foregroundColor: Colors.black,
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: provider.refreshExpenseData,

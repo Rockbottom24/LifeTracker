@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../theme/app_spacing.dart';
-import '../app_card.dart';
+import '../glass_card.dart';
 
 class AccentListCardShell extends StatelessWidget {
   const AccentListCardShell({
@@ -27,11 +27,11 @@ class AccentListCardShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return AppCard(
+    return GlassCard(
       padding: EdgeInsets.zero,
       margin: EdgeInsets.zero,
-      elevation: 1,
       onTap: onTap,
+      borderColor: accentColor.withValues(alpha: 0.35),
       child: Container(
         decoration: BoxDecoration(
           border: Border(left: BorderSide(color: accentColor, width: 5)),
@@ -48,8 +48,9 @@ class AccentListCardShell extends StatelessWidget {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: accentColor.withValues(alpha: 0.12),
+                    color: accentColor.withValues(alpha: 0.18),
                     borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: accentColor.withValues(alpha: 0.35)),
                   ),
                   child: Icon(icon, color: accentColor),
                 ),
@@ -63,7 +64,7 @@ class AccentListCardShell extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.bold,
                           letterSpacing: -0.2,
                         ),
                       ),
@@ -80,7 +81,7 @@ class AccentListCardShell extends StatelessWidget {
                     ],
                   ),
                 ),
-                ?trailing,
+                if (trailing != null) trailing!,
               ],
             ),
             const SizedBox(height: AppSpacing.md),

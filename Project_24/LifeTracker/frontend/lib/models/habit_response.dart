@@ -37,6 +37,9 @@ class HabitResponse {
   /// Day-of-month anchor for MONTHLY habits.
   final DateTime? reminderDate;
 
+  /// Default fallback current streak.
+  int get currentStreak => 0;
+
   factory HabitResponse.fromJson(Map<String, dynamic> json) {
     return HabitResponse(
       id: _toInt(json['id']) ?? 0,
@@ -142,5 +145,40 @@ class HabitResponse {
       final idx = d - 1;
       return (idx >= 0 && idx < names.length) ? names[idx] : '';
     }).where((s) => s.isNotEmpty).join(', ');
+  }
+
+  /// Returns true if this habit is scheduled to occur on [targetDate].
+  bool isScheduledForDate(DateTime targetDate) {
+    final target = DateTime(targetDate.year, targetDate.month, targetDate.day);
+    final start = DateTime(startDate.year, startDate.month, startDate.day);
+
+    if (target.isBefore(start)) return false;
+
+    if (endDate != null) {
+      final end = DateTime(endDate!.year, endDate!.month, endDate!.day);
+      if (target.isAfter(end)) return false;
+    }
+
+    if (scheduleDays != null && scheduleDays!.isNotEmpty) {
+      return scheduleDays!.contains(target.weekday);
+    }
+
+    switch (frequency.toUpperCase()) {
+      case 'DAILY':
+        return true;
+      case 'WEEKLY':
+        return target.weekday == start.weekday;
+      case 'MONTHLY':
+        final targetDay = reminderDate?.day ?? start.day;
+        return target.day == targetDay;
+      case 'SPECIFIC_DATE':
+        return target.year == start.year &&
+            target.month == start.month &&
+            target.day == start.day;
+      case 'CUSTOM':
+        return target.weekday == start.weekday;
+      default:
+        return true;
+    }
   }
 }

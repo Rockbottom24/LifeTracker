@@ -9,6 +9,9 @@ import 'package:timezone/timezone.dart' as tz;
 
 import '../models/habit_frequency.dart';
 import 'habit_reminder_schedule.dart';
+import '../local/local_cache_store.dart';
+import '../local/offline_data_store.dart';
+import '../repositories/habit_repository.dart';
 import '../utils/app_logger.dart';
 
 class NotificationService {
@@ -419,6 +422,14 @@ class NotificationService {
       importance: Importance.high,
       priority: Priority.high,
       playSound: true,
+      actions: <AndroidNotificationAction>[
+        AndroidNotificationAction(
+          'MARK_DONE',
+          'Done',
+          showsUserInterface: true,
+          cancelNotification: true,
+        ),
+      ],
     );
 
     const iosChannel = DarwinNotificationDetails(
@@ -458,15 +469,38 @@ class NotificationService {
   }
 
   void _onNotificationResponse(NotificationResponse response) {
+    _handleNotificationResponse(response);
+  }
+
+  @pragma('vm:entry-point')
+  static void _onBackgroundNotificationResponse(NotificationResponse response) {
+    _handleNotificationResponse(response);
+  }
+
+  static Future<void> _handleNotificationResponse(NotificationResponse response) async {
     final payload = response.payload;
     if (payload == null || payload.isEmpty) return;
     try {
       final decoded = jsonDecode(payload);
-      if (decoded is Map && decoded['userId'] != null) {
-        AppLogger.debug('Notification tapped for userId=${decoded['userId']} kind=${decoded['kind']}');
+      if (decoded is Map) {
+        final kind = decoded['kind'];
+        final entityId = decoded['entityId'];
+        AppLogger.debug(
+          'Notification tapped/acted upon actionId=${response.actionId} userId=${decoded['userId']} kind=$kind entityId=$entityId',
+        );
+        if (response.actionId == 'MARK_DONE' && kind == 'habit' && entityId is int) {
+          await LocalCacheStore.instance.addCompletedToday(entityId);
+          try {
+            final offlineStore = OfflineDataStore(LocalCacheStore.instance);
+            final repository = HabitRepository(offlineStore);
+            await repository.completeLocal(entityId);
+          } catch (_) {}
+          AppLogger.debug('Habit $entityId marked as completed via notification action button');
+        }
       }
-    } catch (_) {}
+    } catch (error) {
+      AppLogger.debug('Failed to process notification response: $error');
+    }
   }
-
-  static void _onBackgroundNotificationResponse(NotificationResponse response) {}
 }
+

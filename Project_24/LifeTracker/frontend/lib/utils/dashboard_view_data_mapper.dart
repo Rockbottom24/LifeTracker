@@ -90,29 +90,33 @@ class DashboardViewDataMapper {
   static DashboardViewData from({
     required DashboardResponse response,
     List<HabitResponse> habits = const [],
+    String? userDisplayName,
+    String? houseName,
   }) {
     final summary = response.summary ?? DashboardSummary();
     final currentDate = response.currentDate ?? DateTime.now();
-    final todayItems = _mapTodayHabits(response.todayHabits ?? [], habits);
-    final mergedSummary = _mergeSummary(summary, habits, todayItems);
-    final firstName = response.firstName?.trim().isNotEmpty == true
-        ? response.firstName!.trim()
-        : (response.userName ?? 'Traveler');
-    final houseDisplayName = response.houseDisplayName?.trim().isNotEmpty == true
-        ? response.houseDisplayName!.trim()
-        : 'Stark';
+    final todayItems = _mapTodayHabits(response.todayHabits ?? [], habits, currentDate);
+    final mergedSummary = _mergeSummary(summary, habits, todayItems, currentDate);
+
+    final displayName = (userDisplayName != null && userDisplayName.trim().isNotEmpty)
+        ? userDisplayName.trim()
+        : (response.firstName?.trim().isNotEmpty == true
+            ? response.firstName!.trim()
+            : (response.userName?.trim().isNotEmpty == true ? response.userName! : 'Noble Lord'));
+    final firstName = displayName.split(' ').first;
+    final houseDisplayName = (houseName != null && houseName.trim().isNotEmpty)
+        ? houseName.trim()
+        : (response.houseDisplayName?.trim().isNotEmpty == true
+            ? response.houseDisplayName!.trim()
+            : 'Stark');
 
     return DashboardViewData(
       greeting: response.greeting ?? _defaultGreeting(),
-      userName: response.userName ?? 'there',
+      userName: displayName,
       firstName: firstName,
       houseDisplayName: houseDisplayName,
-      welcomeTitle: response.welcomeTitle?.trim().isNotEmpty == true
-          ? response.welcomeTitle!.trim()
-          : 'Welcome, $firstName',
-      welcomeSubtitle: response.welcomeSubtitle?.trim().isNotEmpty == true
-          ? response.welcomeSubtitle!.trim()
-          : 'of House $houseDisplayName',
+      welcomeTitle: 'Welcome, $displayName',
+      welcomeSubtitle: 'of House $houseDisplayName',
       dayStatusMessage: response.dayStatusMessage?.trim().isNotEmpty == true
           ? response.dayStatusMessage!.trim()
           : _motivationalMessage(mergedSummary),
@@ -130,14 +134,16 @@ class DashboardViewDataMapper {
     DashboardSummary summary,
     List<HabitResponse> habits,
     List<TodayHabitViewItem> todayItems,
+    DateTime currentDate,
   ) {
     if (habits.isEmpty) return summary;
 
-    final total = habits.length;
+    final scheduledHabits = habits.where((h) => h.isActive && h.isScheduledForDate(currentDate)).toList();
+    final total = scheduledHabits.length;
     final completed = todayItems.where((item) => item.completed).length;
     final pending = (total - completed).clamp(0, total);
     final completionPercentage = total == 0 ? 0.0 : (completed / total) * 100;
-    final possiblePoints = habits.fold<int>(0, (sum, habit) => sum + habit.points);
+    final possiblePoints = scheduledHabits.fold<int>(0, (sum, habit) => sum + habit.points);
     final earnedPoints = todayItems.fold<int>(
       0,
       (sum, item) => sum + (item.completed ? (item.pointsAwarded > 0 ? item.pointsAwarded : item.points) : 0),
@@ -158,10 +164,11 @@ class DashboardViewDataMapper {
   static List<TodayHabitViewItem> _mapTodayHabits(
     List<TodayHabit> todayHabits,
     List<HabitResponse> habits,
+    DateTime currentDate,
   ) {
     if (todayHabits.isEmpty && habits.isNotEmpty) {
       return habits
-          .where((habit) => habit.isActive)
+          .where((habit) => habit.isActive && habit.isScheduledForDate(currentDate))
           .map(
             (habit) => TodayHabitViewItem(
               habitId: habit.id,

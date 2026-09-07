@@ -249,6 +249,8 @@ class _AddMealScreenState extends State<AddMealScreen> {
         )
         .toList();
 
+    final draftFoods = _draftItems.map((item) => item.food).toList();
+
     if (_isEditMode) {
       final ok = await provider.updateMeal(
         widget.meal!.id,
@@ -258,6 +260,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
           notes: _notesController.text.trim(),
           items: items,
         ),
+        foods: draftFoods,
       );
       if (!mounted) return;
       if (!ok) {
@@ -275,6 +278,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
         notes: _notesController.text.trim(),
         items: items,
       ),
+      foods: draftFoods,
     );
     if (!mounted) return;
     if (created == null) {

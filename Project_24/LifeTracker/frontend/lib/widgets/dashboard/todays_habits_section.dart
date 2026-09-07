@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import '../../theme/app_spacing.dart';
 import '../../utils/dashboard_view_data_mapper.dart';
 import '../../utils/habit_ui_utils.dart';
-import '../app_card.dart';
 import '../fade_in_section.dart';
+import '../glass_card.dart';
 import '../section_title.dart';
 
 class TodaysHabitsSection extends StatelessWidget {
@@ -34,8 +34,7 @@ class TodaysHabitsSection extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.md),
           if (habits.isEmpty)
-            AppCard(
-              elevation: 1,
+            GlassCard(
               child: Text(
                 'No habits scheduled for today.',
                 style: Theme.of(context).textTheme.bodyLarge,
@@ -73,87 +72,72 @@ class _TodayHabitTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final accent = HabitUiUtils.colorFromHex(habit.colorHex, theme.colorScheme);
+    const goldColor = Color(0xFFC4B28B);
 
-    return AppCard(
-      elevation: 1,
+    return GlassCard(
       onTap: onTap,
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      borderColor: habit.completed
+          ? Colors.green.withValues(alpha: 0.3)
+          : accent.withValues(alpha: 0.3),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 24,
-            backgroundColor: accent.withValues(alpha: 0.15),
-            child: Icon(HabitUiUtils.iconFromName(habit.iconName), color: accent),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: habit.completed
+                  ? Colors.green.withValues(alpha: 0.18)
+                  : accent.withValues(alpha: 0.18),
+              border: Border.all(
+                color: habit.completed
+                    ? Colors.green.withValues(alpha: 0.4)
+                    : accent.withValues(alpha: 0.4),
+              ),
+            ),
+            child: Icon(
+              habit.completed ? Icons.check_circle_rounded : HabitUiUtils.iconFromName(habit.iconName),
+              color: habit.completed ? Colors.greenAccent : accent,
+              size: 20,
+            ),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  habit.name,
-                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Wrap(
-                  spacing: AppSpacing.sm,
-                  runSpacing: AppSpacing.xs,
-                  children: [
-                    if (habit.reminderLabel != null)
-                      _MiniChip(icon: Icons.schedule, label: habit.reminderLabel!),
-                    _MiniChip(icon: Icons.repeat, label: habit.frequencyLabel),
-                    if (habit.points > 0)
-                      _MiniChip(
-                        icon: Icons.stars_outlined,
-                        label: habit.completed && habit.pointsAwarded > 0
-                            ? '+${habit.pointsAwarded} pts'
-                            : '+${habit.points} pts',
-                      ),
-                    _MiniChip(
-                      icon: habit.completed ? Icons.check_circle : Icons.radio_button_unchecked,
-                      label: habit.completed ? 'Completed' : 'Pending',
-                    ),
-                  ],
-                ),
-              ],
+            child: Text(
+              habit.name,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                decoration: habit.completed ? TextDecoration.lineThrough : null,
+                color: habit.completed ? theme.colorScheme.onSurfaceVariant : null,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-          FilledButton.tonalIcon(
-            onPressed: habit.completed ? onUndo : onComplete,
-            icon: Icon(habit.completed ? Icons.undo : Icons.check),
-            label: Text(
-              habit.completed
-                  ? 'Undo'
-                  : (habit.points > 0 ? 'Done (+${habit.points})' : 'Done'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MiniChip extends StatelessWidget {
-  const _MiniChip({required this.icon, required this.label});
-
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 12, color: theme.colorScheme.onSurfaceVariant),
-          const SizedBox(width: 4),
-          Text(label, style: theme.textTheme.labelSmall),
+          const SizedBox(width: AppSpacing.sm),
+          habit.completed
+              ? OutlinedButton(
+                  onPressed: onUndo,
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    visualDensity: VisualDensity.compact,
+                    side: BorderSide(color: theme.colorScheme.outline.withValues(alpha: 0.3)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                  child: const Text('Undo', style: TextStyle(fontSize: 13)),
+                )
+              : FilledButton.icon(
+                  onPressed: onComplete,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: goldColor,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    visualDensity: VisualDensity.compact,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                  icon: const Icon(Icons.check_rounded, size: 16, color: Colors.black),
+                  label: const Text('Done', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                ),
         ],
       ),
     );

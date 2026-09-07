@@ -4,6 +4,7 @@ import '../../theme/house_theme.dart';
 import '../../theme/app_spacing.dart';
 import '../../utils/dashboard_view_data_mapper.dart';
 import '../fade_in_section.dart';
+import '../glass_card.dart';
 
 class DashboardHeroCard extends StatelessWidget {
   const DashboardHeroCard({
@@ -39,46 +40,72 @@ class DashboardHeroCard extends StatelessWidget {
 
     return FadeInSection(
       index: 0,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(28),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              const Color(0xFF0B0D10),
-              ...house.bannerGradient.map((color) => color.withValues(alpha: 0.92)),
-            ],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: house.accent.withValues(alpha: 0.2),
-              blurRadius: 24,
-              offset: const Offset(0, 10),
-            ),
+      child: GlassCard(
+        borderRadius: 28,
+        borderColor: gold.withValues(alpha: 0.35),
+        borderWidth: 1.5,
+        backgroundColor: Colors.black.withValues(alpha: 0.28),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            house.accent.withValues(alpha: 0.20),
+            Colors.black.withValues(alpha: 0.32),
+            ...house.bannerGradient.map((color) => color.withValues(alpha: 0.25)),
           ],
-          border: Border.all(color: gold.withValues(alpha: 0.28)),
         ),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              welcomeTitle,
-              style: theme.textTheme.headlineMedium?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              welcomeSubtitle,
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: gold.withValues(alpha: 0.95),
-                fontWeight: FontWeight.w600,
-                fontStyle: FontStyle.italic,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        welcomeTitle,
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        welcomeSubtitle,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: gold.withValues(alpha: 0.95),
+                          fontWeight: FontWeight.w600,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: house.accent.withValues(alpha: 0.25),
+                    border: Border.all(color: gold.withValues(alpha: 0.5), width: 1.5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: house.accent.withValues(alpha: 0.4),
+                        blurRadius: 16,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    house.icon,
+                    color: gold,
+                    size: 28,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: AppSpacing.md),
             Wrap(
@@ -91,10 +118,10 @@ class DashboardHeroCard extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.lg),
             Text(
-              "Today's Chronicle",
+              "Today's Realm Chronicle",
               style: theme.textTheme.titleLarge?.copyWith(
                 color: Colors.white.withValues(alpha: 0.96),
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: AppSpacing.md),
@@ -105,15 +132,18 @@ class DashboardHeroCard extends StatelessWidget {
                 _ProgressPill(
                   label: 'Honor Points',
                   value: '$earnedPoints / $possiblePoints',
+                  icon: Icons.workspace_premium_rounded,
                 ),
                 _ProgressPill(
-                  label: 'Quests',
+                  label: 'Quests Completed',
                   value: '$completedQuests / $questCount',
+                  icon: Icons.task_alt_rounded,
                 ),
                 if (caloriesConsumed != null)
                   _ProgressPill(
-                    label: 'Calories',
+                    label: 'Kitchen Energy',
                     value: '${caloriesConsumed!.round()} kcal',
+                    icon: Icons.local_fire_department_rounded,
                   ),
               ],
             ),
@@ -121,7 +151,7 @@ class DashboardHeroCard extends StatelessWidget {
             Text(
               dayStatusMessage,
               style: theme.textTheme.bodyLarge?.copyWith(
-                color: Colors.white.withValues(alpha: 0.82),
+                color: Colors.white.withValues(alpha: 0.85),
                 height: 1.4,
               ),
             ),
@@ -172,37 +202,51 @@ class _ProgressPill extends StatelessWidget {
   const _ProgressPill({
     required this.label,
     required this.value,
+    this.icon,
   });
 
   final String label;
   final String value;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
+    const goldColor = Color(0xFFC4B28B);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.22),
+        color: Colors.black.withValues(alpha: 0.35),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFC4B28B).withValues(alpha: 0.18)),
+        border: Border.all(color: goldColor.withValues(alpha: 0.25)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.78),
-                ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                ),
+          if (icon != null) ...[
+            Icon(icon, size: 18, color: goldColor),
+            const SizedBox(width: 8),
+          ],
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: Colors.white.withValues(alpha: 0.78),
+                      fontSize: 11,
+                    ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+              ),
+            ],
           ),
         ],
       ),

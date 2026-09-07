@@ -29,28 +29,25 @@ class AppTheme {
   }) {
     final isDark = brightness == Brightness.dark;
     final houseAccent = house.accent;
-    final seed = switch (style) {
-      AppStyle.classic => const Color(0xFFB3A37A),
-      AppStyle.fantasy => houseAccent,
-      AppStyle.system => isDark ? houseAccent : const Color(0xFF9B7A56),
-    };
 
     final scheme = ColorScheme.fromSeed(
-      seedColor: seed,
+      seedColor: houseAccent,
       brightness: brightness,
-      primary: style == AppStyle.classic ? const Color(0xFFC4B28B) : houseAccent,
-      secondary: style == AppStyle.fantasy ? const Color(0xFFB57A4A) : const Color(0xFF8A98A9),
+      primary: houseAccent,
+      secondary: house.bannerGradient.last,
       tertiary: houseAccent.withValues(alpha: isDark ? 0.92 : 0.82),
     ).copyWith(
       surface: isDark ? const Color(0xFF0B0D10) : const Color(0xFFF5F1E8),
       onSurface: isDark ? const Color(0xFFF2ECE3) : const Color(0xFF191613),
+      primaryContainer: houseAccent.withValues(alpha: isDark ? 0.25 : 0.18),
+      onPrimaryContainer: isDark ? Colors.white : Colors.black,
       surfaceContainerLowest: isDark ? const Color(0xFF11151A) : const Color(0xFFF9F6F0),
       surfaceContainerLow: isDark ? const Color(0xFF151A20) : const Color(0xFFF1ECE4),
       surfaceContainer: isDark ? const Color(0xFF1B2129) : const Color(0xFFE8E0D4),
       surfaceContainerHigh: isDark ? const Color(0xFF242B34) : const Color(0xFFD9CDBA),
       surfaceContainerHighest: isDark ? const Color(0xFF2D3641) : const Color(0xFFCBBBA5),
-      outline: isDark ? const Color(0xFF5D6672) : const Color(0xFF907D68),
-      outlineVariant: isDark ? const Color(0xFF343E49) : const Color(0xFFC4B59F),
+      outline: houseAccent.withValues(alpha: isDark ? 0.45 : 0.55),
+      outlineVariant: houseAccent.withValues(alpha: isDark ? 0.25 : 0.35),
       shadow: Colors.black,
       scrim: Colors.black,
     );
@@ -71,7 +68,7 @@ class AppTheme {
     );
 
     return base.copyWith(
-      scaffoldBackgroundColor: isDark ? const Color(0xFF090B0E) : const Color(0xFFF4EFE5),
+      scaffoldBackgroundColor: Colors.transparent,
       textTheme: serif.copyWith(
         bodyLarge: base.textTheme.bodyLarge?.copyWith(
           color: scheme.onSurface,
@@ -95,36 +92,47 @@ class AppTheme {
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: isDark ? const Color(0xFF0F1216) : const Color(0xFFF0E8DB),
-        indicatorColor: houseAccent.withValues(alpha: isDark ? 0.24 : 0.16),
+        backgroundColor: Colors.transparent,
+        indicatorColor: houseAccent.withValues(alpha: isDark ? 0.28 : 0.20),
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return IconThemeData(color: houseAccent);
+          }
+          return IconThemeData(color: scheme.onSurfaceVariant);
+        }),
         labelTextStyle: WidgetStatePropertyAll(
-          serif.labelMedium?.copyWith(fontWeight: FontWeight.w600),
+          serif.labelMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: scheme.onSurface,
+          ),
         ),
       ),
       cardTheme: CardThemeData(
         elevation: 0,
-        color: isDark ? const Color(0xFF11161C) : const Color(0xFFF8F3EA),
+        color: isDark
+            ? Colors.black.withValues(alpha: 0.32)
+            : Colors.white.withValues(alpha: 0.52),
         shadowColor: Colors.black.withValues(alpha: 0.24),
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(22),
-          side: BorderSide(color: houseAccent.withValues(alpha: isDark ? 0.18 : 0.22)),
+          side: BorderSide(color: houseAccent.withValues(alpha: isDark ? 0.32 : 0.42), width: 1.2),
         ),
       ),
       dialogTheme: DialogThemeData(
-        backgroundColor: isDark ? const Color(0xFF12161B) : const Color(0xFFF8F3EA),
+        backgroundColor: isDark ? const Color(0xF212161B) : const Color(0xF2F8F3EA),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: isDark ? const Color(0xFF12161B) : const Color(0xFFF8F4EB),
+        fillColor: isDark ? Colors.black.withValues(alpha: 0.32) : Colors.white.withValues(alpha: 0.52),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
-          borderSide: BorderSide(color: houseAccent.withValues(alpha: 0.18)),
+          borderSide: BorderSide(color: houseAccent.withValues(alpha: 0.28)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
-          borderSide: BorderSide(color: houseAccent.withValues(alpha: 0.18)),
+          borderSide: BorderSide(color: houseAccent.withValues(alpha: 0.28)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),

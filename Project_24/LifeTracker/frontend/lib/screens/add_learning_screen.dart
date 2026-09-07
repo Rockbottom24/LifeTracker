@@ -7,7 +7,7 @@ import '../models/learning_priority.dart';
 import '../models/learning_session_response.dart';
 import '../models/learning_status.dart';
 import '../models/update_learning_request.dart';
-import '../providers/auth_provider.dart';
+import '../providers/local_auth_provider.dart';
 import '../providers/learning_provider.dart';
 import '../theme/app_spacing.dart';
 import '../utils/learning_notification_helper.dart';
@@ -116,7 +116,7 @@ class _AddLearningScreenState extends State<AddLearningScreen> {
         SnackBarUtils.showError(context, provider.errorMessage ?? 'Save failed');
         return;
       }
-      final userId = context.read<AuthProvider>().userId;
+      final userId = 1;
       if (userId == null) return;
       await LearningNotificationHelper.scheduleIfEnabled(
         userId: userId,
@@ -150,7 +150,7 @@ class _AddLearningScreenState extends State<AddLearningScreen> {
       SnackBarUtils.showError(context, provider.errorMessage ?? 'Save failed');
       return;
     }
-    final userId = context.read<AuthProvider>().userId;
+    final userId = 1;
     if (userId == null) return;
     await LearningNotificationHelper.scheduleIfEnabled(
       userId: userId,

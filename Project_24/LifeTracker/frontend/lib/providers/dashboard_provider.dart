@@ -43,43 +43,27 @@ class DashboardProvider extends ChangeNotifier {
   }
 
   Future<void> loadDashboard() async {
-    final hadCachedData = dashboard != null;
-    isLoading = !hadCachedData;
-    isRefreshing = hadCachedData;
-    if (!hadCachedData) {
-      errorMessage = null;
-    }
+    isLoading = false;
+    isRefreshing = false;
+    errorMessage = null;
 
     dashboard = _service.getDashboardLocal();
     _refreshSyncState();
     notifyListeners();
 
+    _syncWithServerInBackground();
+  }
+
+  void _syncWithServerInBackground() async {
     try {
       await _service.syncWithServer();
       dashboard = _service.getDashboardLocal();
       _refreshSyncState();
       errorMessage = null;
-    } on ApiException catch (e) {
-      if (dashboard == null) {
-        errorMessage = e.message;
-        syncMessage = null;
-        isOffline = false;
-      } else {
-        _refreshSyncState(networkUnavailable: true);
-        errorMessage = null;
-      }
-    } catch (e) {
-      if (dashboard == null) {
-        errorMessage = e.toString();
-        syncMessage = null;
-        isOffline = false;
-      } else {
-        _refreshSyncState(networkUnavailable: true);
-        errorMessage = null;
-      }
-    } finally {
-      isLoading = false;
-      isRefreshing = false;
+      notifyListeners();
+    } catch (_) {
+      _refreshSyncState(networkUnavailable: true);
+      errorMessage = null;
       notifyListeners();
     }
   }

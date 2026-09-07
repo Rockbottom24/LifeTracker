@@ -2,7 +2,8 @@ enum HabitFrequency {
   daily('DAILY', 'Daily'),
   weekly('WEEKLY', 'Weekly'),
   monthly('MONTHLY', 'Monthly'),
-  custom('CUSTOM', 'Custom days');
+  custom('CUSTOM', 'Custom days'),
+  specificDate('SPECIFIC_DATE', 'Specific Date');
 
   const HabitFrequency(this.apiValue, this.label);
 

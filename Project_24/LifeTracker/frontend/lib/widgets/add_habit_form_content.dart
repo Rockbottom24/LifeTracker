@@ -41,6 +41,9 @@ class AddHabitFormContent extends StatelessWidget {
     required this.onIconChanged,
     this.selectedScheduleDays = const [],
     required this.onScheduleDaysChanged,
+    this.targetDate,
+    this.onTargetDateChanged,
+    this.onAddNewCategory,
   });
 
   final TextEditingController nameController;
@@ -66,6 +69,9 @@ class AddHabitFormContent extends StatelessWidget {
   final ValueChanged<String> onIconChanged;
   final List<int> selectedScheduleDays;
   final ValueChanged<List<int>> onScheduleDaysChanged;
+  final DateTime? targetDate;
+  final ValueChanged<DateTime>? onTargetDateChanged;
+  final VoidCallback? onAddNewCategory;
 
   @override
   Widget build(BuildContext context) {
@@ -132,8 +138,29 @@ class AddHabitFormContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                'Category',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              if (onAddNewCategory != null)
+                TextButton.icon(
+                  onPressed: onAddNewCategory,
+                  icon: const Icon(Icons.add_rounded, size: 16),
+                  label: const Text('Add Category', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  style: TextButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
           AppDropdown<HabitCategoryResponse>(
-            label: 'Category',
+            label: null,
             hint: 'Select a category',
             value: selectedCategory,
             errorText: categoryError,
@@ -158,6 +185,56 @@ class AddHabitFormContent extends StatelessWidget {
             WeekdayPicker(
               selectedDays: selectedScheduleDays,
               onChanged: onScheduleDaysChanged,
+            ),
+          ] else if (selectedFrequency == HabitFrequency.monthly || selectedFrequency == HabitFrequency.specificDate) ...[
+            const SizedBox(height: AppSpacing.lg),
+            InkWell(
+              onTap: () async {
+                final picked = await showDatePicker(
+                  context: context,
+                  initialDate: targetDate ?? DateTime.now(),
+                  firstDate: DateTime.now().subtract(const Duration(days: 365)),
+                  lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+                );
+                if (picked != null) onTargetDateChanged?.call(picked);
+              },
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(selectedFrequency == HabitFrequency.monthly ? Icons.calendar_month_rounded : Icons.calendar_today_rounded, size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            selectedFrequency == HabitFrequency.monthly
+                                ? 'Monthly Repeat Day'
+                                : 'Target Date',
+                            style: const TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
+                          Text(
+                            targetDate != null
+                                ? (selectedFrequency == HabitFrequency.monthly
+                                    ? 'Day ${targetDate!.day} of every month (${targetDate!.day}/${targetDate!.month}/${targetDate!.year})'
+                                    : '${targetDate!.day}/${targetDate!.month}/${targetDate!.year}')
+                                : 'Select Date',
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right_rounded),
+                  ],
+                ),
+              ),
             ),
           ],
         ],

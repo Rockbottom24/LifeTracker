@@ -41,6 +41,19 @@ class WorkoutScheduleModel {
     );
   }
 
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      if (uuid != null) 'uuid': uuid,
+      'scheduledDate': scheduledDate.toIso8601String(),
+      if (template != null) 'template': template!.toJson(),
+      'customTitle': customTitle,
+      'status': status,
+      if (completedAt != null) 'completedAt': completedAt!.toIso8601String(),
+      if (notes != null) 'notes': notes,
+    };
+  }
+
   static int? _toInt(dynamic value) {
     if (value is num) return value.toInt();
     return int.tryParse(value?.toString() ?? '');

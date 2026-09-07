@@ -7,7 +7,7 @@ import '../models/habit_category_response.dart';
 import '../models/habit_frequency.dart';
 import '../models/habit_response.dart';
 import '../models/update_habit_request.dart';
-import '../providers/auth_provider.dart';
+import '../providers/local_auth_provider.dart';
 import '../providers/habit_provider.dart';
 import '../theme/app_spacing.dart';
 import '../utils/habit_notification_helper.dart';
@@ -47,6 +47,7 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
   String _selectedIcon = HabitFormOptions.iconNames.first;
   int? _pendingCategoryId;
   List<int> _selectedScheduleDays = [];
+  DateTime _targetDate = DateTime.now();
 
   String? _categoryError;
   String? _frequencyError;
@@ -76,6 +77,7 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
     _selectedFrequency = HabitFrequency.fromApiValue(habit.frequency);
     _notificationsEnabled = habit.notificationsEnabled;
     _pendingCategoryId = habit.habitCategoryId;
+    _targetDate = habit.startDate;
 
     if (habit.reminderTime != null) {
       _reminderTime = TimeOfDay(
@@ -134,10 +136,12 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
 
     setState(() {
       _categoryError = _selectedCategory == null ? 'Please select a category' : null;
-      _frequencyError = null;
+      _frequencyError = (_selectedFrequency == HabitFrequency.custom && _selectedScheduleDays.isEmpty)
+          ? 'Please select at least one active day'
+          : null;
     });
 
-    if (_selectedCategory == null) {
+    if (_selectedCategory == null || _frequencyError != null) {
       isValid = false;
     }
 
@@ -162,12 +166,58 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
     }
   }
 
+  Future<void> _showAddCategoryDialog() async {
+    final controller = TextEditingController();
+    final newCategoryName = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Add New Category'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(
+            hintText: 'Category Name (e.g. Work, Self Care)',
+          ),
+          textCapitalization: TextCapitalization.words,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final name = controller.text.trim();
+              if (name.isNotEmpty) {
+                Navigator.pop(ctx, name);
+              }
+            },
+            child: const Text('Add'),
+          ),
+        ],
+      ),
+    );
+
+    if (newCategoryName != null && mounted) {
+      final created = await context.read<HabitProvider>().createCategory(newCategoryName);
+      if (created != null && mounted) {
+        setState(() {
+          _selectedCategory = created;
+          _categoryError = null;
+        });
+      }
+    }
+  }
+
   Future<void> _saveCreate(HabitProvider provider, DateTime reminderDateTime) async {
+    final effectiveStartDate = (_selectedFrequency == HabitFrequency.specificDate || _selectedFrequency == HabitFrequency.monthly)
+        ? _targetDate
+        : DateTime.now();
     final request = CreateHabitRequest(
       habitCategoryId: _selectedCategory!.id,
       name: _nameController.text.trim(),
       description: _descriptionController.text.trim(),
-      startDate: DateTime.now(),
+      startDate: effectiveStartDate,
       frequency: _selectedFrequency.apiValue,
       reminderTime: reminderDateTime,
       notificationsEnabled: _notificationsEnabled,
@@ -176,7 +226,10 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
       points: int.tryParse(_pointsController.text.trim()) ?? 0,
       scheduleDays: _selectedFrequency == HabitFrequency.custom
           ? _selectedScheduleDays
-          : null,
+          : (_selectedFrequency == HabitFrequency.weekly
+              ? [effectiveStartDate.weekday]
+              : null),
+      reminderDate: _selectedFrequency == HabitFrequency.monthly ? effectiveStartDate : null,
     );
 
     final habit = await provider.createHabit(request);
@@ -188,7 +241,7 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
       return;
     }
 
-    final userId = context.read<AuthProvider>().userId;
+    final userId = 1;
     if (userId == null) return;
 
     await HabitNotificationHelper.scheduleIfEnabled(
@@ -212,11 +265,14 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
 
   Future<void> _saveEdit(HabitProvider provider, DateTime reminderDateTime) async {
     final habit = widget.habit!;
+    final effectiveStartDate = (_selectedFrequency == HabitFrequency.specificDate || _selectedFrequency == HabitFrequency.monthly)
+        ? _targetDate
+        : habit.startDate;
     final request = UpdateHabitRequest(
       habitCategoryId: _selectedCategory!.id,
       name: _nameController.text.trim(),
       description: _descriptionController.text.trim(),
-      startDate: habit.startDate,
+      startDate: effectiveStartDate,
       endDate: habit.endDate,
       frequency: _selectedFrequency.apiValue,
       reminderTime: reminderDateTime,
@@ -226,7 +282,10 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
       points: int.tryParse(_pointsController.text.trim()) ?? 0,
       scheduleDays: _selectedFrequency == HabitFrequency.custom
           ? _selectedScheduleDays
-          : null,
+          : (_selectedFrequency == HabitFrequency.weekly
+              ? [effectiveStartDate.weekday]
+              : null),
+      reminderDate: _selectedFrequency == HabitFrequency.monthly ? effectiveStartDate : null,
     );
 
     final success = await provider.updateHabit(habit.id, request);
@@ -238,7 +297,7 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
       return;
     }
 
-    final userId = context.read<AuthProvider>().userId;
+    final userId = 1;
     if (userId == null) return;
 
     await HabitNotificationHelper.scheduleIfEnabled(
@@ -350,6 +409,9 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
           onIconChanged: (icon) => setState(() => _selectedIcon = icon),
           selectedScheduleDays: _selectedScheduleDays,
           onScheduleDaysChanged: (days) => setState(() => _selectedScheduleDays = days),
+          targetDate: _targetDate,
+          onTargetDateChanged: (date) => setState(() => _targetDate = date),
+          onAddNewCategory: _showAddCategoryDialog,
         ),
         const SizedBox(height: AppSpacing.xxl),
         AnimatedOpacity(

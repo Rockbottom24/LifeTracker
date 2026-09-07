@@ -184,6 +184,8 @@ class HabitRepository {
       isActive: true,
       habitCategoryId: _toInt(payload['habitCategoryId']),
       points: _toInt(payload['points']) ?? 0,
+      scheduleDays: _parseScheduleDays(payload['scheduleDays']),
+      reminderDate: _parseOptionalDate(payload['reminderDate']),
     );
   }
 
@@ -209,7 +211,23 @@ class HabitRepository {
       isActive: habit.isActive,
       habitCategoryId: _toInt(payload['habitCategoryId']) ?? habit.habitCategoryId,
       points: _toInt(payload['points']) ?? habit.points,
+      scheduleDays: payload.containsKey('scheduleDays')
+          ? _parseScheduleDays(payload['scheduleDays'])
+          : habit.scheduleDays,
+      reminderDate: payload.containsKey('reminderDate')
+          ? _parseOptionalDate(payload['reminderDate'])
+          : habit.reminderDate,
     );
+  }
+
+  List<int>? _parseScheduleDays(dynamic value) {
+    if (value == null) return null;
+    if (value is List) {
+      return value.map((s) => int.tryParse(s.toString())).whereType<int>().toList();
+    }
+    final text = value.toString().trim();
+    if (text.isEmpty) return null;
+    return text.split(',').map((s) => int.tryParse(s.trim())).whereType<int>().toList();
   }
 
   DateTime _parsePayloadDate(dynamic value) {
